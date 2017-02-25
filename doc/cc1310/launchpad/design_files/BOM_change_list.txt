@@ -1,0 +1,6 @@
+Changes from 1.2.0 to 1.3.0:
+
+C30, C52, C53, C54, C55, C56, C57 : Relaxed voltage rating from 10V to 6.3V
+C59 : Relaxed voltage rating from 16V to 10V
+R12 : Changed from 0R to 1.8pF C0G/NP0 capacitor
+

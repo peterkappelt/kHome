@@ -1,0 +1,206 @@
+(ExpressProject ""
+  (ProjectVersion "19981106")
+  (ProjectType "PCB")
+  (Folder "Design Resources"
+    (Folder "Library")
+    (File ".\launchxl-cc1310.dsn"
+      (Type "Schematic Design"))
+    (BuildFileAddedOrDeleted "x")
+    (CompileFileAddedOrDeleted "x")
+    (DOCKED "TRUE")
+    (DOCKING_POSITION "59420")
+    (NoModify)
+    (Netlist_TAB "0")
+    ("Create Allegro Netlist" "TRUE")
+    ("Allegro Netlist Directory"
+       "C:\KHT\WORK\CC1310_LAUNCHPAD\LAUNCHPAD_CC1310_1_3_0\CADENCE\ALLEGRO")
+    ("View Allegro Netlist Files" "FALSE")
+    ("Allegro Netlist Create DCF File" "FALSE")
+    ("Update Allegro Board" "FALSE")
+    ("Allegro Netlist Output Board File" "allegro\LAUNCHXL-CC1310.brd")
+    ("Allegro Netlist Remove Etch" "FALSE")
+    ("Allegro Netlist Place Changed Component" "ALWAYS_REPLACE")
+    ("Allegro Netlist Open Board in Allegro" "ALLEGRO")
+    ("Allegro Setup Backup Versions" "3")
+    ("Allegro Setup Output Warnings" "TRUE")
+    ("Allegro Setup Ignore Constraints" "FALSE")
+    ("Allegro Setup Part Type Length" "31")
+    ("Allegro Netlist Combine Property String" "PCB Footprint")
+    ("Allegro Netlist Ignore Fixed Property" "FALSE")
+    ("Allegro Netlist User Defined Property" "FALSE")
+    (Board_sim_option "VHDL_flow")
+    (DRC_Scope "0")
+    (DRC_Action "0")
+    (DRC_Create_Warnings "FALSE")
+    (DRC_View_Output "FALSE")
+    (DRC_Preserved_Waived "FALSE")
+    (DRC_Run_Electrical_Rules "TRUE")
+    (DRC_Run_Physical_Rules "FALSE")
+    (DRC_Report_File
+       "C:\KHT\WORK\CC1310_LAUNCHPAD\LAUNCHPAD_CC1310_1_1_0\CADENCE\LAUNCHXL-CC1310.DRC")
+    (DRC_Check_Ports "FALSE")
+    (DRC_Check_Off-Page_Connectors "FALSE")
+    (DRC_Report_Ports_and_Off-page_Connectors "FALSE")
+    (DRC_SDT_Compatibility "FALSE")
+    (DRC_Report_Off-grid_Objects "FALSE")
+    (DRC_Check_Unconnected_Nets "TRUE")
+    (DRC_Check_for_Misleading_TAP "FALSE")
+    (DRC_Report_Netnames "FALSE")
+    (DRC_Check_Single_Node_Nets "TRUE")
+    (DRC_Run_Electrical_Custom_DRC "FALSE")
+    (DRC_Check_No_Driving_Source "TRUE")
+    (DRC_Check_Duplicate_NetNames "TRUE")
+    (DRC_Check_Floating_Pins "TRUE")
+    (DRC_Check_Physical_Power_Pins_Visibility "TRUE")
+    (DRC_Check_PCB_Footprint_Property "TRUE")
+    (DRC_Check_Normal_Convert_View_Sync "TRUE")
+    (DRC_Check_Incorrect_PinGroup_Assignment "TRUE")
+    (DRC_Check_High_Speed_Props_Syntax "TRUE")
+    (DRC_Check_Missing_Pin_Numbers "TRUE")
+    (DRC_Check_Device_With_No_Pins "TRUE")
+    (DRC_Check_Power_Ground_Short "TRUE")
+    (DRC_Identical_References "TRUE")
+    (DRC_Type_Mismatch "TRUE")
+    (DRC_Visible_Power_pins "FALSE")
+    (DRC_Report_Unused_Part_Packages "TRUE")
+    (DRC_Check_Name_Prop_For_HierBlocks "TRUE")
+    (DRC_Run_Physical_Custom_DRC "FALSE"))
+  (Folder "Outputs"
+    (File ".\allegro\pstxnet.dat"
+      (Type "Report")
+      (DisplayName "pstxnet.dat"))
+    (File ".\allegro\pstxprt.dat"
+      (Type "Report")
+      (DisplayName "pstxprt.dat"))
+    (File ".\allegro\pstchip.dat"
+      (Type "Report")
+      (DisplayName "pstchip.dat"))
+    (File ".\launchxl-cc1310.drc"
+      (Type "Report"))
+    (Sort User)
+    (File ".\launchxl-cc1310.prp"
+      (Type "Report")
+      (DisplayName "LAUNCHXL-CC1310.PRP"))
+    (File ".\pstxnet.dat"
+      (Type "Report")
+      (DisplayName "pstxnet.dat"))
+    (File ".\pstxprt.dat"
+      (Type "Report")
+      (DisplayName "pstxprt.dat"))
+    (File ".\pstchip.dat"
+      (Type "Report")
+      (DisplayName "pstchip.dat")))
+  (Folder "Referenced Projects")
+  (PartMRUSelector
+    (RESISTOR
+      (FullPartName "RESISTOR.Normal")
+      (LibraryName "X:\SYMBOLS\RESISTOR.OLB")
+      (DeviceIndex "0"))
+    (IC_RF_CC1310F128RGZT_VQFN48
+      (FullPartName "IC_RF_CC1310F128RGZT_VQFN48A.Normal")
+      (LibraryName "X:\SYMBOLS\IC_RF.OLB")
+      (DeviceIndex "0"))
+    (MECH_SHUNT_JUMPER
+      (FullPartName "MECH_SHUNT_JUMPER.Normal")
+      (LibraryName "X:\SYMBOLS\MECHANIC.OLB")
+      (DeviceIndex "0"))
+    (CAPACITOR
+      (FullPartName "CAPACITOR.Normal")
+      (LibraryName "X:\SYMBOLS\CAPACITOR.OLB")
+      (DeviceIndex "0"))
+    (INDUCTOR
+      (FullPartName "INDUCTOR.Normal")
+      (LibraryName "X:\SYMBOLS\INDUCTOR.OLB")
+      (DeviceIndex "0"))
+    (CONN_COAX_1_1_P_2MH
+      (FullPartName "CONN_COAX_1_1_P_2MH.Normal")
+      (LibraryName "X:\SYMBOLS\CONNECTOR.OLB")
+      (DeviceIndex "0"))
+    (OFFPAGELEFT-R
+      (LibraryName "C:\CADENCE\SPB_16.6\TOOLS\CAPTURE\LIBRARY\CAPSYM.OLB")
+      (DeviceIndex "0"))
+    (CONN_HEADER_2X11_P_S
+      (FullPartName "CONN_HEADER_2X11_P_S.Normal")
+      (LibraryName "X:\SYMBOLS\CONNECTOR.OLB")
+      (DeviceIndex "0"))
+    (CONN_HEADER_3_P_S
+      (FullPartName "CONN_HEADER_3_P_S.Normal")
+      (LibraryName "X:\SYMBOLS\CONNECTOR.OLB")
+      (DeviceIndex "0"))
+    (ANTENNA_PCB
+      (FullPartName "ANTENNA_PCB.Normal")
+      (LibraryName "X:\SYMBOLS\MECHANIC.OLB")
+      (DeviceIndex "0"))
+    (ANTENNA
+      (FullPartName "ANTENNA.Normal")
+      (LibraryName "X:\SYMBOLS\MECHANIC.OLB")
+      (DeviceIndex "0"))
+    (IC_RF_CC13XX_7X7_QFN48_V2
+      (FullPartName "IC_RF_CC13XX_7X7_QFN48_V2A.Normal")
+      (LibraryName "X:\SYMBOLS\IC_RF.OLB")
+      (DeviceIndex "0")))
+  (GlobalState
+    (FileView
+      (Path "Design Resources")
+      (Path "Design Resources"
+         "C:\kht\work\CC1310_launchpad\LAUNCHPAD_CC1310_1_3_0\Cadence\launchxl-cc1310.dsn")
+      (Path "Design Resources"
+         "C:\kht\work\CC1310_launchpad\LAUNCHPAD_CC1310_1_3_0\Cadence\launchxl-cc1310.dsn"
+         "CC1310_LaunchPad")
+      (Path "Outputs")
+      (Select "Design Resources"
+         "C:\kht\work\CC1310_launchpad\LAUNCHPAD_CC1310_1_3_0\Cadence\launchxl-cc1310.dsn"))
+    (HierarchyView)
+    (Doc
+      (Type "COrCapturePMDoc")
+      (Frame
+        (Placement "44 0 1 -1 -1 -1 -1 0 250 0 886"))
+      (Tab 0))
+    (Doc
+      (Type "COrSchematicDoc")
+      (Frame
+        (Placement "44 2 3 -1 -1 -8 -30 0 777 0 424")
+        (Scroll "202 0")
+        (Zoom "100")
+        (Occurrence "/"))
+      (Path
+         "C:\KHT\WORK\CC1310_LAUNCHPAD\LAUNCHPAD_CC1310_1_3_0\CADENCE\LAUNCHXL-CC1310.DSN")
+      (Schematic "CC1310_LaunchPad")
+      (Page "1_CC1310RF"))
+    (Doc
+      (Type "COrSchematicDoc")
+      (Frame
+        (Placement "44 0 1 -1 -1 -8 -30 25 802 25 449")
+        (Scroll "350 346")
+        (Zoom "100")
+        (Occurrence "/"))
+      (Path
+         "C:\KHT\WORK\CC1310_LAUNCHPAD\LAUNCHPAD_CC1310_1_3_0\CADENCE\LAUNCHXL-CC1310.DSN")
+      (Schematic "CC1310_LaunchPad")
+      (Page "2_Peripherals"))
+    (Doc
+      (Type "COrSchematicDoc")
+      (Frame
+        (Placement "44 0 1 -1 -1 -8 -30 50 827 50 474")
+        (Scroll "698 346")
+        (Zoom "100")
+        (Occurrence "/"))
+      (Path
+         "C:\KHT\WORK\CC1310_LAUNCHPAD\LAUNCHPAD_CC1310_1_3_0\CADENCE\LAUNCHXL-CC1310.DSN")
+      (Schematic "CC1310_LaunchPad")
+      (Page "3_Debugger Interface"))
+    (Doc
+      (Type "COrSchematicDoc")
+      (Frame
+        (Placement "44 0 1 -1 -1 -8 -30 100 802 100 670")
+        (Scroll "0 0")
+        (Zoom "100")
+        (Occurrence "/"))
+      (Path
+         "C:\KHT\WORK\CC1310_LAUNCHPAD\LAUNCHPAD_CC1310_1_3_0\CADENCE\LAUNCHXL-CC1310.DSN")
+      (Schematic "CC1310_LaunchPad")
+      (Page "4_XDS110")))
+  (MPSSessionName "a0190588")
+  (ISPCBBASICLICENSE "false")
+  (LastUsedLibraryBrowseDirectory
+     "C:\kht\work\CC1310_launchpad\LAUNCHPAD_CC1310_1_0_0\LAUNCHXL-CC1310_1_0_0_Cadence"))
