@@ -1,0 +1,15 @@
+Waived DRC Error Report
+C:/svn_work/cc13xx/CC13xx_EM_Design/5x5/CC13xxEM-5XD-7793_L4/Cadence/Allegro/CC13xxEM_5XD_7793_4L.brd
+Wed Aug 05 15:38:32 2015
+
+DRC Error Count Summary
+DRC Error Type,DRC Error Count
+Package to Package,1
+Etch to Pad,1
+Total DRC Errors,2
+
+Detailed DRC Errors
+Constraint Name,DRC Marker Location,Required Value,Actual Value,Constraint Source,Constraint Source Type,Element 1,Element 2,Comment
+Package to Package Spacing,(132.600 119.275),0 MM,0.6 MM,NONE,DESIGN,"Shape "C16, Package Geometry/Place_Bound_Top"","Shape "C15, Package Geometry/Place_Bound_Top"",SMA-Antenna selector
+Shape to SMD Pin Spacing,(131.850 124.875),0.15 MM,0 MM,DEFAULT,NET SPACING CONSTRAINTS,"Shape "Dummy Net, Etch/Top"",Pin "A1.1 (N501343)",PCB Antenna
+

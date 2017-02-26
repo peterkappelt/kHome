@@ -1,0 +1,17 @@
+Cross Section Report
+C:/svn_work/cc13xx/CC13xx_EM_Design/5x5/CC13xxEM-5XD-7793_L4/Cadence/Allegro/CC13xxEM_5XD_7793_4L.brd
+Wed Aug 05 15:38:31 2015
+
+Design Cross Section
+Subclass Name,Type,Material,Thickness (MM),Conductivity (mho/cm),Dielectric Constant,Loss Tangent,Negative Artwork,Shield,Width (MM),Unused Pin Pad Suppression,Unused Via Pad Suppression
+,SURFACE,AIR,,0,1,0,,,,,
+TOP,CONDUCTOR,COPPER,0.035,595900,4.5,0,,,0.127,,
+,DIELECTRIC,FR-4,0.175,0,4.5,0.035,,,,,
+L2,CONDUCTOR,COPPER,0.0175,595900,4.5,0.035,,,0.15,,
+,DIELECTRIC,FR-4,1.140000,0,4.5,0.035,,,,,
+L3,CONDUCTOR,COPPER,0.0175,595900,4.5,0.035,,,0.15,,
+,DIELECTRIC,FR-4,0.175,0,4.5,0.035,,,,,
+BOTTOM,CONDUCTOR,COPPER,0.035,595900,4.5,0,,,0.127,,
+,SURFACE,AIR,,0,1,0,,,,,
+
+Total Thickness: 1.595 MM

@@ -1,0 +1,51 @@
+(---------------------------------------------------------------------)
+(                                                                     )
+(    Dangling Line, Via and Antenna Report                            )
+(                                                                     )
+(    Drawing          : CC13xxEM_5XD_7793_4L.brd                      )
+(    Software Version : 16.6S026                                      )
+(    Date/Time        : Wed Aug 05 15:38:31 2015                      )
+(                                                                     )
+(---------------------------------------------------------------------)
+
+
+Report methodology:
+  - Dangling lines have at least one end not connected.
+  - Dangling vias have one or no connection
+      - Plus are not a test, thieving or netshort property via.
+  - Antenna vias do not have connections on their start and end layers.
+      - Plus they are not a thieving vias.
+      - Optionally, VOLTAGE nets, testvias and through vias can be suppressed with
+        the environment variable report_antennavia.
+      - Section may be suppressed by variable report_noantennavia.
+  - Not part of the current partition.
+  - To suppress items in dangle report add the OK_DANGLE property to the via
+    or connect line.
+
+
+
+<< Antenna Vias >>
+  Net                  Padstack               Location            Layers
+  ---------------------------------------------------------------------------
+  JTAG_TDO             VIA                  (139.078 98.570) TOP/BOTTOM 
+  JTAG_TDO             VIA                  (116.775 106.875) TOP/BOTTOM 
+  JTAG_TDI             VIA                  (139.078 99.840) TOP/BOTTOM 
+  JTAG_TDI             VIA                  (117.250 104.400) TOP/BOTTOM 
+  VDDS                 VIA                  (124.402 104.700) TOP/BOTTOM 
+  VDDS                 VIA                  (136.525 104.400) TOP/BOTTOM 
+  VDDS                 VIA                  (120.375 113.372) TOP/BOTTOM 
+  VDDS                 VIA                  (128.650 110.175) TOP/BOTTOM 
+  VDDR                 VIA                  (120.275 105.150) TOP/BOTTOM 
+  VDDR                 VIA                  (128.409 113.784) TOP/BOTTOM 
+  VDDR                 VIA                  (128.643 112.495) TOP/BOTTOM 
+  NRESET               VIA                  (138.875 103.225) TOP/BOTTOM 
+  NRESET               VIA                  (125.275 105.303) TOP/BOTTOM 
+  JTAG_TMS             VIA                  (119.100 110.925) TOP/BOTTOM 
+  JTAG_TMS             VIA                  (141.800 108.100) TOP/BOTTOM 
+  JTAG_TCK             VIA                  (119.177 110.302) TOP/BOTTOM 
+  JTAG_TCK             VIA                  (141.800 109.300) TOP/BOTTOM 
+
+<< Summary >>
+  Total dangling lines:       0
+  Total dangling vias:        0
+  Total antenna vias:        17
