@@ -1,0 +1,13 @@
+Output: NC Drill Files
+Type  : NC Drill
+From  : Project [temperatureSensor.PrjPcb]
+   Generated File[temperatureSensor-Plated.TXT]
+   Generated File[temperatureSensor-NonPlated.TXT]
+   Generated File[temperatureSensor.LDP]
+   Generated File[temperatureSensor.DRR]
+
+
+Files Generated   : 4
+Documents Printed : 0
+
+Finished Output Generation At 16:19:03 On 05.03.2017

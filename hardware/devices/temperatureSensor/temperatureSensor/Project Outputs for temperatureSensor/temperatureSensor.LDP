@@ -1,0 +1,3 @@
+Layer Pairs Export File for PCB: C:\Users\peter\Documents\Projekte\home-control\kHome\hardware\devices\temperatureSensor\temperatureSensor\PCB\temperatureSensor.PcbDoc
+LayersSetName=Top_Bot_Plated_Thru_Holes|DrillFile=temperaturesensor-plated.txt|DrillLayers=gtl,gbl
+LayersSetName=Top_Bot_NonPlated_Thru_Holes|DrillFile=temperaturesensor-nonplated.txt|DrillLayers=gtl,gbl

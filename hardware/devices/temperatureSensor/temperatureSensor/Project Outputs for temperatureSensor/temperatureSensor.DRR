@@ -1,0 +1,24 @@
+----------------------------------------------------------------------------------------------------------------------------------
+NCDrill File Report For: temperatureSensor.PcbDoc   05.03.2017  16:19:03
+----------------------------------------------------------------------------------------------------------------------------------
+
+Layer Pair : Top Layer to Bottom Layer
+ASCII Plated RoundHoles File : temperatureSensor-Plated.TXT
+ASCII Non-Plated RoundHoles File : temperatureSensor-NonPlated.TXT
+
+Tool       Hole Size               Hole Tolerance               Hole Type       Hole Count   Plated         Tool Travel
+----------------------------------------------------------------------------------------------------------------------------------
+T1      12mil (0.3mm)                                             Round             109       PTH        15.89inch (403.57mm)
+T2      15mil (0.38mm)                                            Round             19        PTH        1.75inch (44.39mm)
+T3      32mil (0.8mm)                                             Round             5         PTH        1.48inch (37.70mm)
+T4      35mil (0.889mm)                                           Round             3         PTH        0.20inch (5.08mm)
+T5      35mil (0.9mm)                                             Round             1         PTH        0.00inch (0.00mm)
+T6      40mil (1.02mm)                                            Round             2         PTH        0.50inch (12.70mm)
+T7      79mil (2mm)                                               Round             1         PTH        0.00inch (0.00mm)
+T8      24mil (0.6mm)                                             Round             35        NPTH       1.75inch (44.40mm)
+T9      126mil (3.2mm)                                            Round             2         NPTH       2.53inch (64.35mm)
+T10     136mil (3.45mm)                                           Round             2         NPTH       1.19inch (30.34mm)
+----------------------------------------------------------------------------------------------------------------------------------
+Totals                                                                              179
+
+Total Processing Time (hh:mm:ss) : 00:00:00
