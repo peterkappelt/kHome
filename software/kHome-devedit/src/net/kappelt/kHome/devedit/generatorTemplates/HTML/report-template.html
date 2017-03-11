@@ -1,0 +1,127 @@
+<!doctype html>
+
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Device Report: {$FILE_NAME}</title>
+		<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet">
+		<style>
+			img {
+				display: block;
+				margin-left: auto;
+				margin-right: auto;
+			}
+			h1 {
+				font-family: 'Open Sans', sans-serif;
+				font-weight: 800;
+			}
+			
+			h2 {
+				font-family: 'Open Sans', sans-serif;
+				font-weight: 700;
+			}
+			
+			th {
+				font-family: 'Open Sans', sans-serif;
+				font-weight: 600;
+			}
+			
+			td, li{
+				font-family: 'Open Sans', sans-serif;
+				font-weight: 400;
+			}
+			
+			table{
+				border-collapse: collapse;
+			}
+			
+			table, th, td{
+				border: 1px solid #333;
+				padding: 10px;
+			}
+		</style>
+	</head>
+	
+	<body>
+		<img src="data:image/png;base64,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">
+		<h1>Device Report: {$FILE_NAME}</h1>
+		
+		<h2>Meta Information</h2>
+		<ul>
+			<li>Author: {$META_AUTHOR}</li>
+			<li>Device ID: 0x{$META_DEVICE_ID_HEX}</li>
+			<li>Device Version: {$META_DEVICE_VERSION}</li>
+			<li>Device Comment: <br/>{$META_COMMENT}</li>
+		</ul>
+		
+		<h2>Data Registers</h2>
+		<table>
+			<thead>
+				<tr>
+					<th>Address</th>
+					<th>Name</th>
+					<th>Length (Byte)</th>
+					<th>Initial Value</th>
+					<th>Read Only</th>
+					<th>Description</th>
+				</tr>
+			</thead>
+			<tbody>
+				{$BLOCK_DATAREGISTER_START}<tr>
+					<td>0x{$ADDRESS_HEX}</td>
+					<td>{$NAME}</td>
+					<td>{$LENGTH_BYTE}</td>
+					<td>{$INITIAL_VALUE}</td>
+					<td>{$READ_ONLY}</td>
+					<td>{$DESCRIPTION}</td>
+				</tr>{$BLOCK_DATAREGISTER_STOP}
+			</tbody>
+		</table>
+		<br/>
+		
+		<h2>Config Registers</h2>
+		<table>
+			<thead>
+				<tr>
+					<th>Address</th>
+					<th>Name</th>
+					<th>Initial Value</th>
+					<th>Read Only</th>
+					<th>Description</th>
+				</tr>
+			</thead>
+			<tbody>
+				{$BLOCK_CONFIGREGISTER_START}<tr>
+					<td>0x{$ADDRESS_HEX}</td>
+					<td>{$NAME}</td>
+					<td>{$INITIAL_VALUE}</td>
+					<td>{$READ_ONLY}</td>
+					<td>{$DESCRIPTION}</td>
+				</tr>{$BLOCK_CONFIGREGISTER_STOP}
+			</tbody>
+		</table>
+		<br/>
+		
+		<h2>Status Registers</h2>
+		<table>
+			<thead>
+				<tr>
+					<th>Address</th>
+					<th>Name</th>
+					<th>Initial Value</th>
+					<th>Description</th>
+				</tr>
+			</thead>
+			<tbody>
+				{$BLOCK_STATUSREGISTER_START}<tr>
+					<td>0x{$ADDRESS_HEX}</td>
+					<td>{$NAME}</td>
+					<td>{$INITIAL_VALUE}</td>
+					<td>{$DESCRIPTION}</td>
+				</tr>{$BLOCK_STATUSREGISTER_STOP}
+			</tbody>
+		</table>
+		<br/>
+		
+	</body>
+</html>
