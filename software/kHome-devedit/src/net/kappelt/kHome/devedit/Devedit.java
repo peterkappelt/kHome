@@ -295,6 +295,29 @@ public class Devedit {
 		
 		updateMetaTab(loadedKhomeDevice);
 		
+		/**
+		 * there was a argument in the command line.
+		 * Open the defined file
+		 */
+		if(args.length > 0){
+			try{
+				loadedKhomeDevice.loadFile(args[0]);
+				dataRegisterEditor.updateViewFromBackend();
+				dataRegisterEditor.tableDeselectItems();
+				configRegisterEditor.updateViewFromBackend();
+				configRegisterEditor.tableDeselectItems();
+				statusRegisterEditor.updateViewFromBackend();
+				statusRegisterEditor.tableDeselectItems();
+				updateMetaTab(loadedKhomeDevice);
+				
+				updateWindowTitle();
+			}catch(Exception error){
+				MessageBox temp = new MessageBox(shlKhomeDevedit, SWT.ICON_ERROR | SWT.OK);
+				temp.setMessage("Error while opening file specified with programm call: \n" + error.toString());
+				error.printStackTrace();
+			}
+		}
+		
 		shlKhomeDevedit.open();
 		shlKhomeDevedit.layout();
 		
