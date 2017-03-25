@@ -54,7 +54,7 @@ public class Devedit_About extends Dialog {
 		Label lblDescription = new Label(shell, SWT.NONE);
 		lblDescription.setAlignment(SWT.CENTER);
 		lblDescription.setBounds(10, 166, 501, 75);
-		lblDescription.setText("kHome Devedit Tool\r\n\r\nVersion 1.1\r\n\r\n\u00A9 Peter Kappelt 2017");
+		lblDescription.setText("kHome Devedit Tool\r\n\r\nVersion 1.2\r\n\r\n\u00A9 Peter Kappelt 2017");
 
 	}
 }

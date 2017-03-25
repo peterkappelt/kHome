@@ -3,6 +3,7 @@
  */
 package net.kappelt.kHome.generator;
 
+import java.sql.Timestamp;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,7 +29,7 @@ public class Generator {
 		int i = 0;
 		
 		//dataregister replacement
-		Pattern pattern = Pattern.compile("\\{\\$BLOCK_DATAREGISTER_START\\}(.*)\\{\\$BLOCK_DATAREGISTER_STOP\\}", Pattern.DOTALL);
+		Pattern pattern = Pattern.compile("\\{\\$BLOCK_DATAREGISTER_START\\}(.*?)\\{\\$BLOCK_DATAREGISTER_STOP\\}", Pattern.DOTALL);
 		String[] dataSplit = pattern.split(temp);
 		Matcher dataMatcher = pattern.matcher(temp);
 		
@@ -44,7 +45,7 @@ public class Generator {
 		}
 		
 		//configregister replacement
-		pattern = Pattern.compile("\\{\\$BLOCK_CONFIGREGISTER_START\\}(.*)\\{\\$BLOCK_CONFIGREGISTER_STOP\\}", Pattern.DOTALL);
+		pattern = Pattern.compile("\\{\\$BLOCK_CONFIGREGISTER_START\\}(.*?)\\{\\$BLOCK_CONFIGREGISTER_STOP\\}", Pattern.DOTALL);
 		String[] configSplit = pattern.split(temp);
 		Matcher configMatcher = pattern.matcher(temp);
 		
@@ -60,7 +61,7 @@ public class Generator {
 		}
 		
 		//statusregister replacement
-		pattern = Pattern.compile("\\{\\$BLOCK_STATUSREGISTER_START\\}(.*)\\{\\$BLOCK_STATUSREGISTER_STOP\\}", Pattern.DOTALL);
+		pattern = Pattern.compile("\\{\\$BLOCK_STATUSREGISTER_START\\}(.*?)\\{\\$BLOCK_STATUSREGISTER_STOP\\}", Pattern.DOTALL);
 		String[] statusSplit = pattern.split(temp);
 		Matcher statusMatcher = pattern.matcher(temp);
 		
@@ -74,6 +75,10 @@ public class Generator {
 			}
 			temp += statusSplit[i];
 		}
+		
+		//generation date/ time
+		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+		temp = temp.replaceAll("\\{\\$GEN_TIME\\}", timestamp.toString());
 		
 		//meta replacement
 		temp = temp.replaceAll("\\{\\$META_AUTHOR\\}", device.getMetaAuthor());

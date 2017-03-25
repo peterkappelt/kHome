@@ -275,6 +275,79 @@ public class Devedit {
 		});
 		mntmHtmlReport.setText("HTML Report...");
 		
+		MenuItem mntmCRegisterApi = new MenuItem(menu_3, SWT.NONE);
+		mntmCRegisterApi.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				BufferedReader brSource = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/net/kappelt/kHome/devedit/generatorTemplates/C_Registers/khRegister.c")));
+				BufferedReader brHeader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/net/kappelt/kHome/devedit/generatorTemplates/C_Registers/khRegister.h")));
+			    try {
+			        
+			        
+			        FileDialog fd = new FileDialog(shlKhomeDevedit, SWT.SAVE);
+			        String[] filterNames = {
+							"C Source Files (*.c)",
+							"All Files (*.*)"
+					};
+					fd.setFilterNames(filterNames);
+					
+					String[] filterExtensions = {
+							"*.c",
+							"*.*"
+					};
+					fd.setFilterExtensions(filterExtensions);
+			        
+					fd.setFileName("khRegister.c");
+					
+					String fileName = fd.open();
+					
+					if(fileName == null){
+						System.out.println("[Devedit] C Register API: user abborted save file dialog");
+						return;
+					}
+					
+					StringBuilder sbSource = new StringBuilder();
+			        String lineSource = brSource.readLine();
+			        while (lineSource != null) {
+			            sbSource.append(lineSource);
+			            sbSource.append("\n");
+			            lineSource = brSource.readLine();
+			        }
+			        String outputSource = Generator.replaceMagicInTemplate(sbSource.toString(), loadedKhomeDevice);
+					
+			        StringBuilder sbHeader = new StringBuilder();
+			        String lineHeader = brHeader.readLine();
+			        while (lineHeader != null) {
+			            sbHeader.append(lineHeader);
+			            sbHeader.append("\n");
+			            lineHeader = brHeader.readLine();
+			        }
+			        String outputHeader = Generator.replaceMagicInTemplate(sbHeader.toString(), loadedKhomeDevice);
+			        
+					PrintWriter out = new PrintWriter(fileName);
+					out.print(outputSource);
+					out.close();
+					
+					out = new PrintWriter(fileName.replaceFirst("[.][^.]+$", "") + ".h");
+					out.print(outputHeader);
+					out.close();
+					
+					//Do not open it
+					//Desktop.getDesktop().open(new File(fileName));
+					
+			        brSource.close();
+			        brHeader.close();
+			    }catch (Exception error){
+			    	MessageBox temp = new MessageBox(shlKhomeDevedit, SWT.ICON_ERROR | SWT.OK);
+			    	temp.setMessage("Error while generating C Register API:\n" + error.toString());
+			    	temp.open();
+			    	
+			    	error.printStackTrace();
+			    }
+			}
+		});
+		mntmCRegisterApi.setText("C Register API...");
+		
 		MenuItem mntmHelp = new MenuItem(menu, SWT.CASCADE);
 		mntmHelp.setText("Help");
 		
