@@ -1,0 +1,8 @@
+the workspace folder is developer-specific, and it isn't a good idea to commit one to git.
+
+You can import the projects from the directory above in a workspace of your choice.
+
+This is a list of CodeComposer Studio-Projects that are relevant for this workspace:
+
+- kHome-launchpad-gateway
+- tirtos_builds_CC1310_LAUNCHXL_release_ccs (dependency of other projects)
