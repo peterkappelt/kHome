@@ -16,13 +16,12 @@ typedef enum{
     khRFMode_RX,
 }khRFMode;
 
+uint8_t khRFTmpIsInReceiveMode(void);
+
 void khRFInit(void);
 void khRFTransmitTelegram(khTelegram telegram);
 void khRFBroadcastDataRegister(uint8_t dataRegisterAddress);
 void khRFReceiveMode(void);
-
-#include "smartRF/smartrf_settings.h"
-
-extern RF_Handle rfHandle;
+void khRFReceiveModeStop(void);
 
 #endif /* KHOME_KHRF_H_ */

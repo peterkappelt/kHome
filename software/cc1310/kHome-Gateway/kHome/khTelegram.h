@@ -6,6 +6,11 @@
 #ifndef KHOME_KHTELEGRAM_H_
 #define KHOME_KHTELEGRAM_H_
 
+#ifndef KHOME_OWN_ADDRESS_CONFIG_REGISTER
+//Address of the config register, which contains the device's address
+#define KHOME_OWN_ADDRESS_CONFIG_REGISTER 0x00
+#endif
+
 #include <stdint.h>
 
 typedef enum{
@@ -35,6 +40,8 @@ typedef struct{
     uint8_t crc;
 }khTelegram;
 
+void khTelegramInit(void);
+uint8_t khTelegramGetDeviceAddress(void);
 uint8_t khTelegramToByteArray(khTelegram telegram, uint8_t* byteArray);
 khTelStat khByteArrayToTelegram(uint8_t* telegramArray, uint8_t telegramLength, khTelegram* telegram);
 uint8_t khCalculateCRC8OfByteArray(uint8_t* byteArray, uint8_t length);

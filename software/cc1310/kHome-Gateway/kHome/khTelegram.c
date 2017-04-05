@@ -12,6 +12,32 @@
 #include "khRegister.h"
 #include "khTelegram.h"
 
+uint8_t* ownAddress;
+
+/**
+ * @brief init the telegram functions
+ */
+void khTelegramInit(void){
+    khReg* ownAddressConfigRegister;
+
+    khRegRet ownAddressReturn = khGetRegByAddress(khRegType_Config, KHOME_OWN_ADDRESS_CONFIG_REGISTER, &ownAddressConfigRegister);
+
+    if(ownAddressReturn != khRegRet_OK){
+        ownAddress = (uint8_t*)malloc(sizeof(uint8_t));
+        *ownAddress = 0;
+    }else{
+        ownAddress = ownAddressConfigRegister->dataLen1;
+    }
+
+}
+
+/**
+ * @brief get the address of the register
+ */
+uint8_t khTelegramGetDeviceAddress(void){
+    return *ownAddress;
+}
+
 /**
  * @brief convert a telegram to a byte array
  * @param[in]   telegram        a khTelegram
@@ -87,7 +113,11 @@ khTelStat khByteArrayToTelegram(uint8_t* telegramArray, uint8_t telegramLength, 
  * @brief handle the payload data of a telegram
  */
 void khTelegramHandle(khTelegram telegram, khTelegram* answerTelegram, uint8_t* answerTelegramIsNecessary){
-    //todo check, if telegram is for us (receiver address); else: answerTelegramIsNecessary = 0 & return
+    if(telegram.receiverAddress != *ownAddress){
+        answerTelegramIsNecessary = 0;
+        return;
+    }
+
 
     answerTelegram->telegramType = khTelType_ANS;
     answerTelegram->senderAddress = telegram.receiverAddress;              //swap sender and receiver's address

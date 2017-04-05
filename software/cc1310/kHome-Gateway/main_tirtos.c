@@ -66,7 +66,7 @@ int main(void)
 
     /* Set priority and stack size attributes */
     pthread_attr_init(&pAttrs);
-    priParam.sched_priority = 1;
+    priParam.sched_priority = 5;
 
     detachState = PTHREAD_CREATE_DETACHED;
     retc = pthread_attr_setdetachstate(&pAttrs, detachState);

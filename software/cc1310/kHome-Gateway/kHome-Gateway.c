@@ -6,8 +6,6 @@
 /* For usleep() */
 #include <unistd.h>
 #include <stdint.h>
-#include <stddef.h>
-#include <stdio.h>
 
 /* Driver Header files */
 #include <ti/drivers/GPIO.h>
@@ -24,6 +22,7 @@
 #include "kHome/khRegister.h"
 #include "kHome/khTelegram.h"
 #include "kHome/khRF.h"
+#include "kHome/khSerial.h"
 
 #include DEVICE_FAMILY_PATH(driverlib/rf_data_entry.h)
 #include DEVICE_FAMILY_PATH(driverlib/rf_prop_mailbox.h)
@@ -53,25 +52,9 @@ void *mainThread(void *arg0)
     GPIO_write(Board_GPIO_LED0, Board_GPIO_LED_ON);
 
     khRegisterInit();
+    khTelegramInit();
     khRFInit();
-
-    khTelegram test;
-    uint8_t testData[3] = {0x01, 0x02, 0x03};
-
-    uint8_t testOutput[261];
-
-    test.telegramType = khTelType_REG_W;
-    test.receiverAddress = 0x12;
-    test.senderAddress = 0xaa;
-    test.payloadLength = 3;
-    test.payloadData = &testData[0];
-
-    khTelegramToByteArray(test, &testOutput[0]);
-
-    uint8_t testTelegram[9] = {1,1,5,18,3,1,2,3,0};
-    khTelegram newTel;
-
-    khByteArrayToTelegram(&testTelegram[0], 9, &newTel);
+    khSerialInit();
 
     AONBatMonEnable();
     while(!AONBatMonNewBatteryMeasureReady());
@@ -83,7 +66,12 @@ void *mainThread(void *arg0)
 
     while (1) {
         sleep(time);
-        GPIO_toggle(Board_GPIO_LED0);
+        //GPIO_toggle(Board_GPIO_LED0);
+
+        if(!GPIO_read(Board_GPIO_BTN1)){
+            khRFBroadcastDataRegister(0x02);
+        }
+
         //khRFBroadcastDataRegister(0x02);
 
         //printf("Hello World!\r\n");

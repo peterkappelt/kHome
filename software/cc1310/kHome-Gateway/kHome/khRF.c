@@ -10,15 +10,27 @@
 #include "khRegister.h"
 #include "khTelegram.h"
 
+
+#ifdef KHOME_RF_SERIAL_GATEWAY
+//transmit the telegram over serial if we use the gateway feature
+    #include "khSerial.h"
+#endif
+
 #include <stdlib.h>
+#include <ti/sysbios/BIOS.h>
+#include <ti/sysbios/knl/Task.h>
+#include <ti/sysbios/knl/Event.h>
 
 #include "smartRF/smartrf_settings.h"
+
+//temp:
+#include "Board.h"
 
 #include DEVICE_FAMILY_PATH(driverlib/rf_data_entry.h)
 #include DEVICE_FAMILY_PATH(driverlib/rf_prop_mailbox.h)
 
 static RF_Object rfObject;
-/*static*/ RF_Handle rfHandle;
+static RF_Handle rfHandle;
 static RF_Params rfParams;
 
 khRFMode currentRFMode = khRFMode_NotOpened;
@@ -35,6 +47,19 @@ static RF_CmdHandle rxCmdHandle;
 
 static uint8_t txBuffer[20];            //the commands of this device won't be longer than 20 bytes
 uint8_t txReady = 1;
+khRFMode txPreviousRFMode;
+
+#define KHRFQUEUE_TASK_STACK_SIZE 128
+#define KHRFQUEUE_TASK_PRIORITY 1
+
+static Task_Params khRfQueueTaskParams;
+static Task_Struct khRfQueueTask;
+static uint8_t khRfQueueTaskStack[KHRFQUEUE_TASK_STACK_SIZE];
+
+static Event_Struct eventRestartReceive;
+static Event_Handle eventRestartReceiveHandle;
+
+static void khRfQueueTaskFunction(UArg arg0, UArg arg1);
 
 /**
  * @brief initialize the radio and local config
@@ -61,10 +86,40 @@ void khRFInit(void){
 
     //go to receive mode (default)
     //khRFReceiveMode();
+
+    //init the task to restart receive mode
+    Event_Params eventParam;
+    Event_Params_init(&eventParam);
+    Event_construct(&eventRestartReceive, &eventParam);
+    eventRestartReceiveHandle = Event_handle(&eventRestartReceive);
+
+    Task_Params_init(&khRfQueueTaskParams);
+    khRfQueueTaskParams.stackSize = KHRFQUEUE_TASK_STACK_SIZE;
+    khRfQueueTaskParams.priority = KHRFQUEUE_TASK_PRIORITY;
+    khRfQueueTaskParams.stack = &khRfQueueTaskStack;
+    Task_construct(&khRfQueueTask, khRfQueueTaskFunction, &khRfQueueTaskParams, NULL);
+}
+
+static void khRfQueueTaskFunction(UArg arg0, UArg arg1){
+
+    while(1){
+        uint32_t events = Event_pend(eventRestartReceiveHandle, 0, 0xFFFFFFFF, BIOS_WAIT_FOREVER);
+
+        //event #1 is the only current implemented
+        if(events & 1){
+            khRFReceiveMode();
+            GPIO_toggle(Board_GPIO_LED0);
+        }
+    }
 }
 
 static void txCallback(RF_Handle h, RF_CmdHandle ch, RF_EventMask e){
     txReady = 1;
+    if(txPreviousRFMode == khRFMode_RX){
+        //go back to rx if we were in it before
+        currentRFMode = khRFMode_RX;
+        khRFReceiveMode();
+    }
     if (e & RF_EventLastCmdDone){
         //successfully transmitted
     }
@@ -77,11 +132,15 @@ static void txCallback(RF_Handle h, RF_CmdHandle ch, RF_EventMask e){
 }
 
 void khRFTransmitTelegram(khTelegram telegram){
-    //todo switch to tx from rx mode
-
     if(currentRFMode == khRFMode_NotOpened){
         return;                                             //the radio is not opened
     }
+
+    txPreviousRFMode = currentRFMode;
+
+    khRFReceiveModeStop();
+
+    currentRFMode = khRFMode_TX;
 
     //wait for a previous transmit to finish
     while(!txReady);
@@ -97,8 +156,6 @@ void khRFTransmitTelegram(khTelegram telegram){
     khRF_cmdPropTx.startTrigger.pastTrig = 1;
     khRF_cmdPropTx.startTime = 0;
 
-    //todo: handle returns
-    //todo: check if opened
     RF_CmdHandle cmdHdl = RF_postCmd(rfHandle, (RF_Op*)&khRF_cmdPropTx, RF_PriorityNormal, txCallback, RADIO_EVENTS_ALL_RELEVANT);
     // Wait for Command to complete -> commented out; is done in async callback
     //RF_EventMask result = RF_pendCmd(rfHandle, cmdHdl,  (RF_EventLastCmdDone | RF_EventCmdError));
@@ -115,7 +172,9 @@ void khRFBroadcastDataRegister(uint8_t dataRegisterAddress){
 
     khRegRet returnCodeRegister = khGetDataRegValByAddress(dataRegisterAddress, &registerLength, &registerValue);
 
-    //Todo: check returnCodeRegister
+    if(returnCodeRegister != khRegRet_OK){
+        return;
+    }
 
     uint8_t broadcastTelegramPayload[5];
     khTelegram broadcastTelegram;
@@ -165,15 +224,22 @@ static void rxCallback(RF_Handle h, RF_CmdHandle ch, RF_EventMask e){
                 uint8_t length = *(uint8_t*)(&pDataEntry->data);
 
                 khTelegram parsedTelegram;
+                parsedTelegram.payloadData = NULL;
+
                 khTelStat parseStat = khByteArrayToTelegram(&pDataEntry->data + 1, length, &parsedTelegram);
 
-                //any other telegram type than defined does not need an answer
-                if(parseStat == khTelStat_CRCError){
+#ifdef KHOME_RF_SERIAL_GATEWAY
+                //transmit the telegram over serial if we use the gateway feature
+                khSerialTransmitTelegram(parsedTelegram);
+#endif
+
+                //any other telegram parse status than CRCError or OK does not need an answer
+                if((parseStat == khTelStat_CRCError) && (parsedTelegram.receiverAddress == khTelegramGetDeviceAddress())){
                     khTelegram answerTelegram;
                     uint8_t answerTelegramData[2];
 
                     answerTelegram.telegramType = khTelType_ANS;
-                    answerTelegram.senderAddress = 0x01;            //todo get own address
+                    answerTelegram.senderAddress = khTelegramGetDeviceAddress();
                     answerTelegram.receiverAddress = 0xFF;
                     answerTelegram.payloadLength = 2;
                     answerTelegram.payloadData = &answerTelegramData[0];
@@ -182,6 +248,10 @@ static void rxCallback(RF_Handle h, RF_CmdHandle ch, RF_EventMask e){
                     answerTelegramData[1] = 0xFD;
 
                     khRFTransmitTelegram(answerTelegram);
+#ifdef KHOME_RF_SERIAL_GATEWAY
+                //transmit the telegram over serial if we use the gateway feature
+                    khSerialTransmitTelegram(answerTelegram);
+#endif
                 }else if(parseStat == khTelStat_OK){
                     uint8_t answerTelegramIsNecessary;
 
@@ -193,10 +263,16 @@ static void rxCallback(RF_Handle h, RF_CmdHandle ch, RF_EventMask e){
 
                     if(answerTelegramIsNecessary){
                         khRFTransmitTelegram(answerTelegram);
+#ifdef KHOME_RF_SERIAL_GATEWAY
+                //transmit the telegram over serial if we use the gateway feature
+                    khSerialTransmitTelegram(answerTelegram);
+#endif
                     }
                 }
 
-                free(parsedTelegram.payloadData);
+                if(parsedTelegram.payloadData != NULL){
+                    free(parsedTelegram.payloadData);
+                }
             }else if(rxStatistics.nRxBufFull == 1){
                 //buffer overflow
             }else if(rxStatistics.nRxStopped == 1){
@@ -207,14 +283,31 @@ static void rxCallback(RF_Handle h, RF_CmdHandle ch, RF_EventMask e){
         }else if(khRF_cmdPropRx.status == PROP_DONE_RXTIMEOUT){
             //receive timeout; shouldn't happen in current config
         }else{
-            //todo error
+            //general error, do nothing
         }
 
-        //restart receiving
-        khRFReceiveMode();
+        //restart receiving, post the event
+        Event_post(eventRestartReceiveHandle, 1);
     }else if((e == RF_EventCmdAborted) || (e == RF_EventCmdStopped)){
-        //todo user aborted -> go to tx mode?
+        //user aborted, nothing else is necessary
     }
+}
+
+uint8_t khRFTmpIsInReceiveMode(void){
+    return (rxCmdHandle >= 0) ? 1:0;
+}
+
+void khRFReceiveModeStop(void){
+    if(currentRFMode == khRFMode_NotOpened){
+        return;
+    }
+
+    if(rxCmdHandle >= 0){
+        //only abort the command if it is still running
+        RF_cancelCmd(rfHandle, rxCmdHandle, 0);
+    }
+    rxCmdHandle = -1;
+    currentRFMode = khRFMode_Idle;
 }
 
 void khRFReceiveMode(void){
@@ -222,9 +315,12 @@ void khRFReceiveMode(void){
         return;
     }
 
-    if(currentRFMode == khRFMode_TX){
-        //Todo abort TX?
-    }
+    //I suppose, we can just start receiving
+    //The tx command will be as long in the queue as the data isn't transmitted, this shouldn't be to long
+    //After that, the radio should just start receiving
+    /*if(currentRFMode == khRFMode_TX){
+
+    }*/
 
     if(currentRFMode == khRFMode_RX){
         if(rxCmdHandle >= 0){
