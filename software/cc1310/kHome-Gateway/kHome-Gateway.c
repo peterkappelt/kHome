@@ -66,7 +66,7 @@ void *mainThread(void *arg0)
 
     while (1) {
         sleep(time);
-        //GPIO_toggle(Board_GPIO_LED0);
+        GPIO_toggle(Board_GPIO_LED0);
 
         if(!GPIO_read(Board_GPIO_BTN1)){
             khRFBroadcastDataRegister(0x02);

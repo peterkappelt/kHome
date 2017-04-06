@@ -49,17 +49,19 @@ static uint8_t txBuffer[20];            //the commands of this device won't be l
 uint8_t txReady = 1;
 khRFMode txPreviousRFMode;
 
-#define KHRFQUEUE_TASK_STACK_SIZE 128
+#define KHRFQUEUE_TASK_STACK_SIZE 256
 #define KHRFQUEUE_TASK_PRIORITY 1
 
-static Task_Params khRfQueueTaskParams;
-static Task_Struct khRfQueueTask;
-static uint8_t khRfQueueTaskStack[KHRFQUEUE_TASK_STACK_SIZE];
+static Task_Params khRfReceivedTaskParams;
+static Task_Struct khRfReceivedTask;
+static uint8_t khRfReceivedTaskStack[KHRFQUEUE_TASK_STACK_SIZE];
 
-static Event_Struct eventRestartReceive;
-static Event_Handle eventRestartReceiveHandle;
+static Event_Struct eventPacketReceived;
+static Event_Handle eventPacketReceivedHandle;
 
-static void khRfQueueTaskFunction(UArg arg0, UArg arg1);
+static void khRfReceivedTaskFunction(UArg arg0, UArg arg1);
+
+uint8_t hasReceivedUnhandledTelegram = 0;
 
 /**
  * @brief initialize the radio and local config
@@ -90,25 +92,95 @@ void khRFInit(void){
     //init the task to restart receive mode
     Event_Params eventParam;
     Event_Params_init(&eventParam);
-    Event_construct(&eventRestartReceive, &eventParam);
-    eventRestartReceiveHandle = Event_handle(&eventRestartReceive);
+    Event_construct(&eventPacketReceived, &eventParam);
+    eventPacketReceivedHandle = Event_handle(&eventPacketReceived);
 
-    Task_Params_init(&khRfQueueTaskParams);
-    khRfQueueTaskParams.stackSize = KHRFQUEUE_TASK_STACK_SIZE;
-    khRfQueueTaskParams.priority = KHRFQUEUE_TASK_PRIORITY;
-    khRfQueueTaskParams.stack = &khRfQueueTaskStack;
-    Task_construct(&khRfQueueTask, khRfQueueTaskFunction, &khRfQueueTaskParams, NULL);
+    Task_Params_init(&khRfReceivedTaskParams);
+    khRfReceivedTaskParams.stackSize = KHRFQUEUE_TASK_STACK_SIZE;
+    khRfReceivedTaskParams.priority = KHRFQUEUE_TASK_PRIORITY;
+    khRfReceivedTaskParams.stack = &khRfReceivedTaskStack;
+    Task_construct(&khRfReceivedTask, khRfReceivedTaskFunction, &khRfReceivedTaskParams, NULL);
 }
 
-static void khRfQueueTaskFunction(UArg arg0, UArg arg1){
+static void khRfReceivedTaskFunction(UArg arg0, UArg arg1){
+    rfc_dataEntryGeneral_t *pDataEntry;
+    pDataEntry = (rfc_dataEntryGeneral_t*) &rxBuffer[0];
 
     while(1){
-        uint32_t events = Event_pend(eventRestartReceiveHandle, 0, 0xFFFFFFFF, BIOS_WAIT_FOREVER);
+        uint32_t events = Event_pend(eventPacketReceivedHandle, 0, 0xFFFFFFFF, BIOS_WAIT_FOREVER);
 
         //event #1 is the only current implemented
         if(events & 1){
-            khRFReceiveMode();
-            GPIO_toggle(Board_GPIO_LED0);
+            if(khRF_cmdPropRx.status == PROP_DONE_OK){
+                if(pDataEntry->status != DATA_ENTRY_FINISHED){
+                    //general RX Error
+                }else if(rxStatistics.nRxOk == 1){
+                    uint8_t length = *(uint8_t*)(&pDataEntry->data);
+
+                    khTelegram parsedTelegram;
+                    parsedTelegram.payloadData = NULL;
+
+                    khTelStat parseStat = khByteArrayToTelegram(&pDataEntry->data + 1, length, &parsedTelegram);
+
+#ifdef KHOME_RF_SERIAL_GATEWAY
+                    //transmit the telegram over serial if we use the gateway feature
+                    khSerialTransmitTelegram(parsedTelegram);
+#endif
+
+                    //any other telegram parse status than CRCError or OK does not need an answer
+                    if((parseStat == khTelStat_CRCError) && (parsedTelegram.receiverAddress == khTelegramGetDeviceAddress())){
+                        khTelegram answerTelegram;
+                        uint8_t answerTelegramData[2];
+
+                        answerTelegram.telegramType = khTelType_ANS;
+                        answerTelegram.senderAddress = khTelegramGetDeviceAddress();
+                        answerTelegram.receiverAddress = 0xFF;
+                        answerTelegram.payloadLength = 2;
+                        answerTelegram.payloadData = &answerTelegramData[0];
+
+                        answerTelegramData[0] = 0xFD;                   //CRC problem
+                        answerTelegramData[1] = 0xFD;
+
+                        khRFTransmitTelegram(answerTelegram);
+#ifdef KHOME_RF_SERIAL_GATEWAY
+                    //transmit the telegram over serial if we use the gateway feature
+                        khSerialTransmitTelegram(answerTelegram);
+#endif
+                    }else if(parseStat == khTelStat_OK){
+                        uint8_t answerTelegramIsNecessary;
+
+                        khTelegram answerTelegram;
+                        uint8_t answerTelegramData[32];
+                        answerTelegram.payloadData = &answerTelegramData[0];
+
+                        khTelegramHandle(parsedTelegram, &answerTelegram, &answerTelegramIsNecessary);
+
+                        if(answerTelegramIsNecessary){
+                            khRFTransmitTelegram(answerTelegram);
+#ifdef KHOME_RF_SERIAL_GATEWAY
+                    //transmit the telegram over serial if we use the gateway feature
+                        khSerialTransmitTelegram(answerTelegram);
+#endif
+                        }
+                    }
+
+                    if(parsedTelegram.payloadData != NULL){
+                        free(parsedTelegram.payloadData);
+                    }
+                }else if(rxStatistics.nRxBufFull == 1){
+                    //buffer overflow
+                }else if(rxStatistics.nRxStopped == 1){
+                    //aborted -> go to tx?
+                }else{
+                    //general RX error
+                }
+            }else if(khRF_cmdPropRx.status == PROP_DONE_RXTIMEOUT){
+                //receive timeout; shouldn't happen in current config
+            }else{
+                //general error, do nothing
+            }
+
+            hasReceivedUnhandledTelegram = 0;
         }
     }
 }
@@ -210,84 +282,15 @@ void khRFBroadcastDataRegister(uint8_t dataRegisterAddress){
 }
 
 static void rxCallback(RF_Handle h, RF_CmdHandle ch, RF_EventMask e){
-    rfc_dataEntryGeneral_t *pDataEntry;
-    pDataEntry = (rfc_dataEntryGeneral_t*) &rxBuffer[0];
-
     //invalidate handle
     rxCmdHandle = -1;
 
     if(e & RF_EventLastCmdDone){
-        if(khRF_cmdPropRx.status == PROP_DONE_OK){
-            if(pDataEntry->status != DATA_ENTRY_FINISHED){
-                //general RX Error
-            }else if(rxStatistics.nRxOk == 1){
-                uint8_t length = *(uint8_t*)(&pDataEntry->data);
-
-                khTelegram parsedTelegram;
-                parsedTelegram.payloadData = NULL;
-
-                khTelStat parseStat = khByteArrayToTelegram(&pDataEntry->data + 1, length, &parsedTelegram);
-
-#ifdef KHOME_RF_SERIAL_GATEWAY
-                //transmit the telegram over serial if we use the gateway feature
-                khSerialTransmitTelegram(parsedTelegram);
-#endif
-
-                //any other telegram parse status than CRCError or OK does not need an answer
-                if((parseStat == khTelStat_CRCError) && (parsedTelegram.receiverAddress == khTelegramGetDeviceAddress())){
-                    khTelegram answerTelegram;
-                    uint8_t answerTelegramData[2];
-
-                    answerTelegram.telegramType = khTelType_ANS;
-                    answerTelegram.senderAddress = khTelegramGetDeviceAddress();
-                    answerTelegram.receiverAddress = 0xFF;
-                    answerTelegram.payloadLength = 2;
-                    answerTelegram.payloadData = &answerTelegramData[0];
-
-                    answerTelegramData[0] = 0xFD;                   //CRC problem
-                    answerTelegramData[1] = 0xFD;
-
-                    khRFTransmitTelegram(answerTelegram);
-#ifdef KHOME_RF_SERIAL_GATEWAY
-                //transmit the telegram over serial if we use the gateway feature
-                    khSerialTransmitTelegram(answerTelegram);
-#endif
-                }else if(parseStat == khTelStat_OK){
-                    uint8_t answerTelegramIsNecessary;
-
-                    khTelegram answerTelegram;
-                    uint8_t answerTelegramData[32];
-                    answerTelegram.payloadData = &answerTelegramData[0];
-
-                    khTelegramHandle(parsedTelegram, &answerTelegram, &answerTelegramIsNecessary);
-
-                    if(answerTelegramIsNecessary){
-                        khRFTransmitTelegram(answerTelegram);
-#ifdef KHOME_RF_SERIAL_GATEWAY
-                //transmit the telegram over serial if we use the gateway feature
-                    khSerialTransmitTelegram(answerTelegram);
-#endif
-                    }
-                }
-
-                if(parsedTelegram.payloadData != NULL){
-                    free(parsedTelegram.payloadData);
-                }
-            }else if(rxStatistics.nRxBufFull == 1){
-                //buffer overflow
-            }else if(rxStatistics.nRxStopped == 1){
-                //aborted -> go to tx?
-            }else{
-                //general RX error
-            }
-        }else if(khRF_cmdPropRx.status == PROP_DONE_RXTIMEOUT){
-            //receive timeout; shouldn't happen in current config
-        }else{
-            //general error, do nothing
-        }
-
-        //restart receiving, post the event
-        Event_post(eventRestartReceiveHandle, 1);
+        //wait for the previous telegram to be handle
+        //while(hasReceivedUnhandledTelegram);
+        hasReceivedUnhandledTelegram = 1;
+        //restart receiving and handle the data, send response packet, post the event
+        Event_post(eventPacketReceivedHandle, 1);
     }else if((e == RF_EventCmdAborted) || (e == RF_EventCmdStopped)){
         //user aborted, nothing else is necessary
     }
