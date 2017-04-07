@@ -30,7 +30,7 @@ DItemRevisionGUID=
 ReportSuppressedErrorsInMessages=0
 FSMCodingStyle=eFMSDropDownList_OneProcess
 FSMEncodingStyle=eFMSDropDownList_OneHot
-OutputPath=
+OutputPath=Project Outputs for temperatureSensor
 LogFolderPath=
 ManagedProjectGUID=
 
@@ -56,6 +56,23 @@ GenerateClassCluster=0
 DocumentUniqueId=PEQTPBMY
 
 [Document2]
+DocumentPath=uniOut.OutJob
+AnnotationEnabled=1
+AnnotateStartValue=1
+AnnotationIndexControlEnabled=0
+AnnotateSuffix=
+AnnotateScope=All
+AnnotateOrder=-1
+DoLibraryUpdate=1
+DoDatabaseUpdate=1
+ClassGenCCAutoEnabled=1
+ClassGenCCAutoRoomEnabled=1
+ClassGenNCAutoScope=None
+DItemRevisionGUID=
+GenerateClassCluster=0
+DocumentUniqueId=
+
+[Document3]
 DocumentPath=SCH\temperatureSensor.SchDoc
 AnnotationEnabled=1
 AnnotateStartValue=1
@@ -72,7 +89,7 @@ DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=LROTSMXX
 
-[Document3]
+[Document4]
 DocumentPath=LIB\temperatureSensor.PcbLib
 AnnotationEnabled=1
 AnnotateStartValue=1
@@ -89,7 +106,7 @@ DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=RELHQWTV
 
-[Document4]
+[Document5]
 DocumentPath=PCB\temperatureSensor.PcbDoc
 AnnotationEnabled=1
 AnnotateStartValue=1
@@ -339,6 +356,9 @@ TerminationMinC7=0
 TerminationMaxC7=0
 TerminationPrefC7=0
 TerminationVCC7=5
+
+[Generic_EDE]
+OutputDir=Project Outputs for temperatureSensor
 
 [OutputGroup1]
 Name=Netlist Outputs
