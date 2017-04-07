@@ -8,9 +8,12 @@
 
 #include "khSerial.h"
 #include "khTelegram.h"
+#include "khRF.h"
 
 #include <Board.h>
 #include <ti/drivers/UART.h>
+
+#include <stdlib.h>
 
 #include <ti/sysbios/BIOS.h>
 #include <ti/sysbios/knl/Task.h>
@@ -85,7 +88,58 @@ static void khSerialReceivedTaskFunction(UArg arg0, UArg arg1){
                 //0xAA (start of frame) | one byte data | \r | \n
                 if(rxBufferIndex > 2){
                    if((rxBuffer[0] == 0xAA) == (rxBuffer[rxBufferIndex - 1] == '\r')){
-                       UART_write(uartHandle, &rxBuffer[1], rxBufferIndex);
+                       uint8_t length = rxBufferIndex - 2;
+
+                       khTelegram parsedTelegram;
+                       parsedTelegram.payloadData = NULL;
+
+                       khTelStat parseStat = khByteArrayToTelegram(&rxBuffer[1], length, &parsedTelegram);
+
+   #ifdef KHOME_RF_SERIAL_GATEWAY
+                       //transmit the telegram over serial if we use the gateway feature
+                       khRFTransmitTelegram(parsedTelegram);
+   #endif
+
+                       //any other telegram parse status than CRCError or OK does not need an answer
+                       if((parseStat == khTelStat_CRCError) && (parsedTelegram.receiverAddress == khTelegramGetDeviceAddress())){
+                           khTelegram answerTelegram;
+                           uint8_t answerTelegramData[2];
+
+                           answerTelegram.telegramType = khTelType_ANS;
+                           answerTelegram.senderAddress = khTelegramGetDeviceAddress();
+                           answerTelegram.receiverAddress = 0xFF;
+                           answerTelegram.payloadLength = 2;
+                           answerTelegram.payloadData = &answerTelegramData[0];
+
+                           answerTelegramData[0] = 0xFD;                   //CRC problem
+                           answerTelegramData[1] = 0xFD;
+
+                           khSerialTransmitTelegram(answerTelegram);
+   #ifdef KHOME_RF_SERIAL_GATEWAY
+                           //transmit the telegram over serial if we use the gateway feature
+                           khRFTransmitTelegram(answerTelegram);
+   #endif
+                       }else if(parseStat == khTelStat_OK){
+                           uint8_t answerTelegramIsNecessary;
+
+                           khTelegram answerTelegram;
+                           uint8_t answerTelegramData[32];
+                           answerTelegram.payloadData = &answerTelegramData[0];
+
+                           khTelegramHandle(parsedTelegram, &answerTelegram, &answerTelegramIsNecessary);
+
+                           if(answerTelegramIsNecessary){
+                               khSerialTransmitTelegram(answerTelegram);
+   #ifdef KHOME_RF_SERIAL_GATEWAY
+                               //transmit the telegram over serial if we use the gateway feature
+                               khRFTransmitTelegram(answerTelegram);
+   #endif
+                           }
+                       }
+
+                       if(parsedTelegram.payloadData != NULL){
+                           free(parsedTelegram.payloadData);
+                       }
                    }
                 }
 
