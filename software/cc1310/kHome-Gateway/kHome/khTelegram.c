@@ -114,7 +114,7 @@ khTelStat khByteArrayToTelegram(uint8_t* telegramArray, uint8_t telegramLength, 
  */
 void khTelegramHandle(khTelegram telegram, khTelegram* answerTelegram, uint8_t* answerTelegramIsNecessary){
     if(telegram.receiverAddress != *ownAddress){
-        answerTelegramIsNecessary = 0;
+        *answerTelegramIsNecessary = 0;
         return;
     }
 

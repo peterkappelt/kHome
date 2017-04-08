@@ -147,7 +147,7 @@ static void khRfReceivedTaskFunction(UArg arg0, UArg arg1){
                         khSerialTransmitTelegram(answerTelegram);
 #endif
                     }else if(parseStat == khTelStat_OK){
-                        uint8_t answerTelegramIsNecessary;
+                        uint8_t answerTelegramIsNecessary = 0;
 
                         khTelegram answerTelegram;
                         uint8_t answerTelegramData[32];
@@ -158,9 +158,14 @@ static void khRfReceivedTaskFunction(UArg arg0, UArg arg1){
                         if(answerTelegramIsNecessary){
                             khRFTransmitTelegram(answerTelegram);
 #ifdef KHOME_RF_SERIAL_GATEWAY
-                    //transmit the telegram over serial if we use the gateway feature
-                        khSerialTransmitTelegram(answerTelegram);
+                            //transmit the telegram over serial if we use the gateway feature
+                            khSerialTransmitTelegram(answerTelegram);
 #endif
+                        }else{
+                            //we need no answer telegram
+                            //the restart of the receive mode gets handled by the khRFTransmitTelegram function
+                            //since we are not calling it, we need to manually restart receive
+                            khRFReceiveMode();
                         }
                     }
 
@@ -182,6 +187,7 @@ static void khRfReceivedTaskFunction(UArg arg0, UArg arg1){
 
             hasReceivedUnhandledTelegram = 0;
         }
+
     }
 }
 
