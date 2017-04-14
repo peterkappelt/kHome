@@ -257,12 +257,12 @@ void khRFBroadcastDataRegister(uint8_t dataRegisterAddress){
     uint8_t broadcastTelegramPayload[5];
     khTelegram broadcastTelegram;
     broadcastTelegram.telegramType = khTelType_REG_B;
-    broadcastTelegram.receiverAddress = 0xFF;               //receiver's address is alway 0xFF at broadcast
-    broadcastTelegram.senderAddress = 0x01;                 //temp: handle own address
-    broadcastTelegram.payloadLength = 1 + registerLength;   //payload is as follows: |1x register address|1x-4x register data
+    broadcastTelegram.receiverAddress = 0xFF;                           //receiver's address is alway 0xFF at broadcast
+    broadcastTelegram.senderAddress = khTelegramGetDeviceAddress();     //get own address
+    broadcastTelegram.payloadLength = 1 + registerLength;               //payload is as follows: |1x register address|1x-4x register data
     broadcastTelegram.payloadData = &broadcastTelegramPayload[0];
 
-    broadcastTelegramPayload[0] = dataRegisterAddress;      //byte 0 of payload is the register's address
+    broadcastTelegramPayload[0] = dataRegisterAddress;                  //byte 0 of payload is the register's address
 
     //the rest of the payload depends on on the length
     switch(registerLength){
