@@ -8,6 +8,7 @@
 #include "log.h"
 #include "khTelegram.h"
 #include "mqtt.h"
+#include "kBuffer/kBuffer.h"
 
 #include <stdlib.h>
 #include <stdio.h>   /* Standard input/output definitions */
@@ -16,6 +17,9 @@
 #include <fcntl.h>   /* File control definitions */
 #include <errno.h>   /* Error number definitions */
 #include <termios.h> /* POSIX terminal control definitions */
+#include <sys/time.h>
+
+buffer_t bufferMQTTToSerial;
 
 /**
  * String of ther serial port's device
@@ -32,6 +36,25 @@ uint8_t receiveBuffer[256];
  */
 unsigned int receiveBufferIndex = 0;
 
+
+/**
+ * the following values are used, if we wait for an answer telegram
+ * we expect an answer, if we've send a telegram which requests an answer
+ */
+//is one, if we are currently waiting for an answer telegram
+uint8_t answerWaitingFor = 0;
+
+//type of the telegram, which we expect the answer for
+khTelType answerExpectedTelegramType = 0;
+
+//expected answer device address
+uint8_t answerDeviceAddress = 0;
+
+//address of the register (data; status; config) that was written to/ read from
+uint8_t answerRegisterAddress = 0;
+
+//answer start waited timestamp
+struct timeval answerWaitStartTime;
 
 /**
  * set various attributes of the serial port, like the baudrate, parity, ...
@@ -98,6 +121,18 @@ void serialSetBlocking(int fd, int should_block){
 }
 
 /**
+ * Init every variable, ...
+ */
+void serialInit(void){
+	fileHandle = 0;
+
+	if(bufferInit(&bufferMQTTToSerial, 128) != bufferOK){
+		logWrite(1023, "error while initializing telegram buffer, memory allocation failed");
+		exit(0);
+	}
+}
+
+/**
  * Open the serial port, if there is an error, print it and exit
  */
 void serialOpen(void){
@@ -110,6 +145,11 @@ void serialOpen(void){
 
 	serialSetInterfaceAttributes(fileHandle, B115200, 0);  // set speed to 115,200 bps, 8n1 (no parity)
 	serialSetBlocking(fileHandle, 0);                // set no blocking
+
+	usleep(100);
+
+	//flush previous, remaining bytes
+	tcflush(fileHandle, TCIOFLUSH);
 }
 
 /**
@@ -155,6 +195,105 @@ void serialReceivedCompletePacket_LL_REG_B(khTelegram telegram){
 	}
 
 	mqttPublishDataRegister(telegram.senderAddress, telegram.payloadData[0], registerData);
+}
+
+/**
+ * Internal low-level function which is called, if a telegram is received that is of type ANS
+ */
+void serialReceivedCompletePacket_LL_ANS(khTelegram telegram){
+	if(telegram.payloadLength < 2){
+		logWrite(2, "Payload of ANS telegram is to short: must be at least 2, is %d", telegram.payloadLength);
+		return;
+	}
+
+	//todo check, whether the sender address of the ANS-telegram is the same we are expecting
+
+	//switch the answer code, which is payload data #0
+	switch(telegram.payloadData[0]){
+		case 0x00:
+			//answercode "OK", we will continue below
+			break;
+		case 0xFF:
+			//unknown register address
+			answerWaitingFor = 0;
+			logWrite(2, "Unknown (data-, config- or status-) register %d of device %d", answerRegisterAddress, answerDeviceAddress);
+			return;
+		case 0xFE:
+			//register is read-only
+			answerWaitingFor = 0;
+			logWrite(2, "The register %d of device %d is read-only", answerRegisterAddress, answerDeviceAddress);
+			return;
+		case 0xFD:
+			//crc error
+			answerWaitingFor = 0;
+			logWrite(2, "The device which answered reported a CRC error!");
+			return;
+		case 0xFC:
+			//invalid value
+			answerWaitingFor = 0;
+			logWrite(2, "The value that shall be written to register %d of device %d is invalid!", answerRegisterAddress, answerDeviceAddress);
+			return;
+		case 0xFB:
+			//length mismatch
+			answerWaitingFor = 0;
+			logWrite(2, "Length mismatch between the send length and real length of the register!");
+			return;
+		default:
+			answerWaitingFor = 0;
+			logWrite(2, "Unknown answer code: %d", telegram.payloadData[0]);
+			return;
+	}
+
+	//we are only here, if the answer code is "OK"
+
+	//byte #1 of payload is the type of the telegram, which the response is related to
+	if(telegram.payloadData[1] != answerExpectedTelegramType){
+		logWrite(2, "telegram type mismatch: the answer is related to type %d, but we are waiting for an answer to %d", telegram.payloadData[1], answerExpectedTelegramType);
+		return;
+	}
+
+	//distinguish the further payload data beween the type of telegram
+	switch(answerExpectedTelegramType){
+		//REG_W and REG_R contain the same type of payload
+		case khTelType_REG_W:
+		case khTelType_REG_R:
+			answerWaitingFor = 0;
+			if(telegram.payloadLength < 3){
+				logWrite(2, "%d bytes of payload are too few for an answer to REG_R/ REG_W", telegram.payloadLength);
+				return;
+			}else if(telegram.payloadLength == 3){
+				mqttPublishDataRegister(answerDeviceAddress, answerRegisterAddress, ((telegram.payloadData[2] & 0x000000FF) >> 0));
+			}else if(telegram.payloadLength == 4){
+				mqttPublishDataRegister(answerDeviceAddress, answerRegisterAddress, ((telegram.payloadData[2] & 0x0000FF00) >> 8) | ((telegram.payloadData[3] & 0x000000FF) >> 0));
+			}else if(telegram.payloadLength == 6){
+				mqttPublishDataRegister(answerDeviceAddress, answerRegisterAddress, ((telegram.payloadData[2] & 0xFF000000) >> 24) | ((telegram.payloadData[3] & 0x00FF0000) >> 16) | ((telegram.payloadData[4] & 0x0000FF00) >> 8) | ((telegram.payloadData[5] & 0x000000FF) >> 0));
+			}
+			break;
+		case khTelType_CNF_W:
+		case khTelType_CNF_R:
+			answerWaitingFor = 0;
+			if(telegram.payloadLength != 3){
+				logWrite(2, "An answer to CNF_W/ CNF_R must be exactly 3 bytes long, but it is %d long", telegram.payloadLength);
+				return;
+			}else{
+				mqttPublishConfigRegister(answerDeviceAddress, answerRegisterAddress, telegram.payloadData[2]);
+			}
+			break;
+		case khTelType_STS_R:
+			answerWaitingFor = 0;
+			if(telegram.payloadLength != 3){
+				logWrite(2, "An answer to STS_R must be exactly 3 bytes long, but it is %d long", telegram.payloadLength);
+				return;
+			}else{
+				mqttPublishStatusRegister(answerDeviceAddress, answerRegisterAddress, telegram.payloadData[2]);
+			}
+			break;
+		//todo other answer types
+		default:
+			answerWaitingFor = 0;
+			logWrite(2, "Don't know how to handle the answer to the telegram type %d", answerExpectedTelegramType);
+			return;
+	}
 }
 
 /**
@@ -211,6 +350,7 @@ void serialReceivedCompletePacket(void){
 			 sprintf(telTypeString, "Unknown");
 	}
 
+
 	//Start log writing
 	char payloadString[200 * 3];
 	receivedTelegram.payloadLength = (receivedTelegram.payloadLength > 200) ? 0:receivedTelegram.payloadLength;
@@ -223,9 +363,28 @@ void serialReceivedCompletePacket(void){
 	logWrite(2, "%s from %d to %d: %s", telTypeString, receivedTelegram.senderAddress, receivedTelegram.receiverAddress, payloadString);
 	//End log
 
+	//the gateway only needs to handle REG_B and ANS packets
 	switch(receivedTelegram.telegramType){
 		case khTelType_REG_B:
 			serialReceivedCompletePacket_LL_REG_B(receivedTelegram);
+			break;
+		case khTelType_ANS:
+			serialReceivedCompletePacket_LL_ANS(receivedTelegram);
+			break;
+		case khTelType_REG_W:
+			//gateway doesn't need to handle this type
+			break;
+		case khTelType_REG_R:
+			//gateway doesn't need to handle this type
+			break;
+		case khTelType_CNF_W:
+			//gateway doesn't need to handle this type
+			break;
+		case khTelType_CNF_R:
+			//gateway doesn't need to handle this type
+			break;
+		case khTelType_STS_R:
+			//gateway doesn't need to handle this type
 			break;
 		default:
 			logWrite(1023, "Packet: Telegram type not supported!");
@@ -241,6 +400,7 @@ void serialReceivedCompletePacket(void){
  * If so, this function initiates the handling of it
  */
 void serialLoop(void){
+	//check for new available bytes
 	char c;
  
 	if(read(fileHandle, &c, 1) > 0){
@@ -252,7 +412,7 @@ void serialLoop(void){
 
 		if(receiveBuffer[receiveBufferIndex - 1] == '\n'){		//the character was a newline. check the previous
 			//for logging -> convert it to a hex string
-			char* hexString = (char*)malloc(receiveBufferIndex * 3);
+			char* hexString = malloc(sizeof(char*) * receiveBufferIndex * 3);
 			unsigned int i;
 			for(i = 0; i < receiveBufferIndex; i++){
 				sprintf(&hexString[i * 3], "%02X ", receiveBuffer[i] & 0xFF);
@@ -276,6 +436,45 @@ void serialLoop(void){
 			}
 
 			receiveBufferIndex = 0;
+		}
+	}
+
+	//check, if we are waiting for an answer and it timed out
+	if(answerWaitingFor){
+		struct timeval timeNow, timeDiff;
+		gettimeofday(&timeNow, NULL);
+		timersub(&timeNow, &answerWaitStartTime, &timeDiff);
+		if(timeDiff.tv_sec || (timeDiff.tv_usec >= answerWaitTimeout)){
+			logWrite(2, "The answer to the last command wasn't received fast enough (->timeout)");
+			answerWaitingFor = 0;
+		}
+	}
+
+	//check, if we are waiting for an answer to a previous command
+	//if we are not waiting, get a new command out of the buffer and send it
+	if(!answerWaitingFor){
+		//check for telegrams in the buffer to be send, if we aren't waiting for an answer of a previous telegram
+		khTelegram telegramToSend;
+		if(bufferRead(&bufferMQTTToSerial, &telegramToSend) == bufferOK){
+			uint8_t telegramStream[255];
+
+			telegramStream[0] = 0xAA;
+			uint8_t telegramStreamLength = khTelegramToByteArray(telegramToSend, &telegramStream[1]);
+			telegramStream[telegramStreamLength + 1] = '\r';
+			telegramStream[telegramStreamLength + 2] = '\n';
+
+			answerWaitingFor = 1;										//now, we are waiting for the answer of this telegram
+			answerExpectedTelegramType = telegramToSend.telegramType;
+			answerDeviceAddress = telegramToSend.receiverAddress;
+			answerRegisterAddress = telegramToSend.payloadData[0];		//byte number 0 of the payload is always the register address -> unclean and not suitable for all future commands, to be fixed
+
+			if(telegramToSend.payloadData != NULL){
+				free(telegramToSend.payloadData);					//free the previously allocated memory for the payload
+			}
+
+			gettimeofday(&answerWaitStartTime, NULL);					//the current timestamp -> time, when we started waiting for the answer
+
+			write(fileHandle, telegramStream, telegramStreamLength + 3);
 		}
 	}
 }
