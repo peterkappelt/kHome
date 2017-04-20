@@ -17,6 +17,14 @@
 {$META_COMMENT}
  */
 
+/**
+ * Version History:
+ * • V1.1 (20.4.2017)
+ *  - added this version history
+ * • V1.0 (19.4.2017)
+ *  - initial revision
+ */
+
 #include "khRegister.h"
 
 #define khReg_LEN1_DATATYPE uint8_t
