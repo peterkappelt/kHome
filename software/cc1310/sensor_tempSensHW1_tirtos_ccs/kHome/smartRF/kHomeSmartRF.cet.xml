@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<codeexporttemplate>
+  <version><![CDATA[2]]></version>
+  <header><![CDATA[]]></header>
+  <typequalifer><![CDATA[]]></typequalifer>
+  <commandprefix><![CDATA[]]></commandprefix>
+  <variableprefix><![CDATA[khRF_]]></variableprefix>
+  <footer><![CDATA[]]></footer>
+  <indent><![CDATA[4]]></indent>
+  <namestyle><![CDATA[CAMEL_CASE]]></namestyle>
+  <defaultfilename><![CDATA[smartrf_settings]]></defaultfilename>
+  <includes>
+    <block name="device_family"><![CDATA[
+#ifdef DEVICE_FAMILY
+    #undef DEVICE_FAMILY_PATH
+    #define DEVICE_FAMILY_PATH(x) &lt;ti/devices/DEVICE_FAMILY/x&gt;
+#else
+    #error "You must define DEVICE_FAMILY at the project level as one of cc26x0, cc26x0r2, cc13x0, etc."
+#endif
+    ]]></block>
+    <include dependency="none">
+      <header><![CDATA[DEVICE_FAMILY_PATH(driverlib/rf_mailbox.h)]]></header>
+    </include>
+    <include dependency="command">
+      <filter>CMD_RADIO_SETUP,CMD_FS</filter>
+      <header><![CDATA[DEVICE_FAMILY_PATH(driverlib/rf_common_cmd.h)]]></header>
+    </include>
+    <include dependency="command">
+      <filter>CMD_IEEE.*</filter>
+      <header><![CDATA[DEVICE_FAMILY_PATH(driverlib/rf_ieee_cmd.h)]]></header>
+    </include>
+    <include dependency="command">
+      <filter>CMD_BLE.*</filter>
+      <header><![CDATA[DEVICE_FAMILY_PATH(driverlib/rf_ble_cmd.h)]]></header>
+    </include>
+    <include dependency="command">
+      <filter>CMD_PROP.*</filter>
+      <header><![CDATA[DEVICE_FAMILY_PATH(driverlib/rf_prop_cmd.h)]]></header>
+    </include>
+    <include dependency="ti-rtos">
+      <header><![CDATA[&lt;ti/drivers/rf/RF.h&gt;]]></header>
+    </include>
+    <include dependency="patch">
+      <filter>.*cpe.*</filter>
+      <header><![CDATA[DEVICE_FAMILY_PATH(rf_patches/__NAME__.h)]]></header>
+    </include>
+    <include dependency="patch">
+      <filter>.*rfe.*</filter>
+      <header><![CDATA[DEVICE_FAMILY_PATH(rf_patches/__NAME__.h)]]></header>
+    </include>
+    <include dependency="patch">
+      <filter>.*mce.*</filter>
+      <header><![CDATA[DEVICE_FAMILY_PATH(rf_patches/__NAME__.h)]]></header>
+    </include>
+  </includes>
+</codeexporttemplate>
