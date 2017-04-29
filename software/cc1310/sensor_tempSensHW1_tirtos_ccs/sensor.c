@@ -49,6 +49,8 @@
 #include "kHome/khRF.h"
 #include "kHome/khTelegram.h"
 
+#include "programmingMode/programmingMode.h"
+
 /*
  * I2C:
  * Read from SI7020 sensor
@@ -278,13 +280,23 @@ void *mainThread(void *arg0)
     //read the last config
     configNVRead();
 
+    /**
+     * Init the hardware for the programming mode toggle button
+     */
+    programmingModeInit();
+
     /*
      * start receiving commands
      */
-    khRFReceiveMode();
+    /*
+     * Edit: do not start receive by default.
+     * We only receive during programming mode, which is coded seperately
+     */
+    //khRFReceiveMode();
 
     while (1) {
         if(si7020updateTemperatureAndRh()){
+            //todo: only send, if it changed
             *temperatureRegister->dataLen4 = (int32_t)(temp * 10);
             *humidityRegister->dataLen4 = (uint32_t)(rh * 10);
         }
@@ -301,5 +313,11 @@ void *mainThread(void *arg0)
         if((configDeviceAddressOld != configNV.deviceAddress) || (configAutoTransmitIntervalOld != configNV.autoTransmitInterval)){
             configNVWrite();
         }
+
+        /*if(GPIO_read(Board_GPIO_PRGBTN)){
+            GPIO_write(Board_GPIO_PRGLED, 0);
+        }else{
+            GPIO_write(Board_GPIO_PRGLED, 1);
+        }*/
     }
 }
