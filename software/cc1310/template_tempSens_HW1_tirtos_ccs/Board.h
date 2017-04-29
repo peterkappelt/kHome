@@ -92,6 +92,8 @@ extern "C" {
 //#define Board_GPIO_GLED         tempSens_HWV1_GPIO_LED_GREEN
 //#define Board_GPIO_LED_ON       tempSens_HWV1_GPIO_LED_ON
 //#define Board_GPIO_LED_OFF      tempSens_HWV1_GPIO_LED_OFF
+#define Board_GPIO_PRGLED       tempSens_HWV1_GPIO_PRGLED
+#define Board_GPIO_PRGBTN       tempSens_HWV1_GPIO_PRGBTN
 
 #define Board_GPTIMER0A         tempSens_HWV1_GPTIMER0A
 #define Board_GPTIMER0B         tempSens_HWV1_GPTIMER0B

@@ -62,6 +62,52 @@
 #include <ti/drivers/ADCBuf.h>
 #include <ti/drivers/adcbuf/ADCBufCC26XX.h>
 
+/*
+ *  ========================== NVS begin =========================================
+ */
+/* Place into subsections to allow the TI linker to remove items properly */
+#if defined(__TI_COMPILER_VERSION__)
+#pragma DATA_SECTION(NVS_config, ".const:NVS_config")
+#pragma DATA_SECTION(nvsCC26xxHWAttrs, ".const:nvsCC26xxHWAttrs")
+#endif
+
+/* Include drivers */
+#include <ti/drivers/NVS.h>
+#include <ti/drivers/nvs/NVSCC26XX.h>
+
+
+/* NVS objects */
+NVSCC26XX_Object nvsCC26xxObjects[tempSens_HWV1_NVSCOUNT];
+/*
+ * Block to be used if making a copy of the flash page is needed.
+ * Could use another block of flash, but there is not alot of flash on
+ * these devices...
+ */
+char myCopyBlock[4096];
+const NVSCC26XX_HWAttrs nvsCC26xxHWAttrs[tempSens_HWV1_NVSCOUNT] = {
+{
+        .block = (void *)(0x10000 - 4096), // Flash sector to use is top 4096 of flash on a 64k part
+        .blockSize = 4096,
+        .copyBlock = myCopyBlock,
+        .isRam = true
+    }
+};
+
+const uint8_t NVS_count = 1;
+
+const NVS_Config NVS_config[] = {
+    {
+        .fxnTablePtr = &NVSCC26XX_fxnTable,
+        .object      = &nvsCC26xxObjects[0],
+        .hwAttrs     = &nvsCC26xxHWAttrs[0]
+    },
+    {NULL, NULL, NULL}
+};
+
+/*
+ *  ========================== NVS end =========================================
+ */
+
 ADCBufCC26XX_Object adcBufCC26xxObjects[tempSens_HWV1_ADCBUFCOUNT];
 
 /*
@@ -358,12 +404,10 @@ const uint_least8_t Display_count = 0;
  */
 GPIO_PinConfig gpioPinConfigs[] = {
     /* Input pins */
-    GPIOCC26XX_DIO_13 | GPIO_CFG_IN_PU | GPIO_CFG_IN_INT_RISING,  /* Button 0 */
-    GPIOCC26XX_DIO_14 | GPIO_CFG_IN_PU | GPIO_CFG_IN_INT_RISING,  /* Button 1 */
+    GPIOCC26XX_DIO_11 | GPIO_CFG_IN_PU | GPIO_CFG_IN_INT_RISING,  /* Programming button */
 
     /* Output pins */
-    GPIOCC26XX_DIO_07 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_LOW,  /* Green LED */
-    GPIOCC26XX_DIO_06 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_LOW,  /* Red LED */
+    GPIOCC26XX_DIO_12 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_HIGH,  /* Programming mode indicator LED */
 };
 
 /*
@@ -374,8 +418,7 @@ GPIO_PinConfig gpioPinConfigs[] = {
  *       reduce memory usage (if placed at end of gpioPinConfigs array).
  */
 GPIO_CallbackFxn gpioCallbackFunctions[] = {
-    NULL,  /* Button 0 */
-    NULL,  /* Button 1 */
+    NULL,  /* Programming button */
 };
 
 const GPIOCC26XX_Config GPIOCC26XX_config = {

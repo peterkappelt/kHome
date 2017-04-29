@@ -99,7 +99,7 @@ extern const PIN_Config BoardGpioInitTable[];
 /* Discrete Inputs */
 //#define tempSens_HWV1_PIN_BTN1              IOID_13
 //#define tempSens_HWV1_PIN_BTN2              IOID_14
-#define tempSens_HWV1_PIN_PRGBTN            IOID_12
+#define tempSens_HWV1_PIN_PRGBTN            IOID_11
 
 /* GPIO */
 //#define tempSens_HWV1_GPIO_LED_ON           1
@@ -236,10 +236,8 @@ typedef enum tempSens_HWV1_CryptoName {
  *  @brief  Enum of GPIO names
  */
 typedef enum tempSens_HWV1_GPIOName {
-    tempSens_HWV1_GPIO_S1 = 0,
-    tempSens_HWV1_GPIO_S2,
-    tempSens_HWV1_GPIO_LED_GREEN,
-    tempSens_HWV1_GPIO_LED_RED,
+    tempSens_HWV1_GPIO_PRGBTN,
+    tempSens_HWV1_GPIO_PRGLED,
 
     tempSens_HWV1_GPIOCOUNT
 } tempSens_HWV1_GPIOName;
