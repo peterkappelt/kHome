@@ -10,7 +10,7 @@ run: $(EXECUTABLE)
 	./kH-MQTT-gateway
 
 $(EXECUTABLE): $(OBJECTS)
-	$(CC) $(LDFLAGS) $(OBJECTS) -Lsrc/paho-1.1.0/lib/ -lpaho-mqtt3c -o $@
+	$(CC) $(LDFLAGS) $(OBJECTS) -Wl,-rpath=./kH-lib -Lsrc/paho-1.1.0/lib/ -lpaho-mqtt3c -o $@
 
 .c.o:
 	$(CC) $(CFLAGS) -ggdb -DbufferDatatype=khTelegram $< -o $@
