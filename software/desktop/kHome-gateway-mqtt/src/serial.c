@@ -355,7 +355,8 @@ void serialReceivedCompletePacket(void){
 	char payloadString[200 * 3];
 	receivedTelegram.payloadLength = (receivedTelegram.payloadLength > 200) ? 0:receivedTelegram.payloadLength;
 
-	for(int i = 0; i < receivedTelegram.payloadLength; i++){
+	int i;
+	for(i = 0; i < receivedTelegram.payloadLength; i++){
 		sprintf(&payloadString[i * 3], "%02X ", receivedTelegram.payloadData[i]);
 	}
 	payloadString[receivedTelegram.payloadLength * 3] = 0;
