@@ -6,3 +6,5 @@ This is a list of CodeComposer Studio-Projects that are relevant for this worksp
 
 - kHome-launchpad-gateway
 - tirtos_builds_CC1310_LAUNCHXL_release_ccs (dependency of other projects)
+- template_tempSens_HW1_tirtos_ccs
+- tirtos_builds_tempSens_HW1_release_ccs (dependency of other projects)

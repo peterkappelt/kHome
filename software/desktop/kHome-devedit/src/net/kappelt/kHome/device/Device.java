@@ -305,7 +305,7 @@ public class Device {
 			
 			dataRegisterAttributeElement = doc.createElement("address");
 			dataRegisterElement.appendChild(dataRegisterAttributeElement);
-			dataRegisterAttributeElement.insertBefore(doc.createTextNode(Integer.toString(dataRegister.getAddress())), dataRegisterAttributeElement.getLastChild());
+			dataRegisterAttributeElement.insertBefore(doc.createTextNode(Integer.toString(dataRegister.getAddress(), 16)), dataRegisterAttributeElement.getLastChild());
 			
 			dataRegisterAttributeElement = doc.createElement("lengthByte");
 			dataRegisterElement.appendChild(dataRegisterAttributeElement);
@@ -337,7 +337,7 @@ public class Device {
 			
 			configRegisterAttributeElement = doc.createElement("address");
 			configRegisterElement.appendChild(configRegisterAttributeElement);
-			configRegisterAttributeElement.insertBefore(doc.createTextNode(Integer.toString(configRegister.getAddress())), configRegisterAttributeElement.getLastChild());
+			configRegisterAttributeElement.insertBefore(doc.createTextNode(Integer.toString(configRegister.getAddress(), 16)), configRegisterAttributeElement.getLastChild());
 			
 			configRegisterAttributeElement = doc.createElement("lengthByte");
 			configRegisterElement.appendChild(configRegisterAttributeElement);
@@ -369,7 +369,7 @@ public class Device {
 			
 			statusRegisterAttributeElement = doc.createElement("address");
 			statusRegisterElement.appendChild(statusRegisterAttributeElement);
-			statusRegisterAttributeElement.insertBefore(doc.createTextNode(Integer.toString(statusRegister.getAddress())), statusRegisterAttributeElement.getLastChild());
+			statusRegisterAttributeElement.insertBefore(doc.createTextNode(Integer.toString(statusRegister.getAddress(), 16)), statusRegisterAttributeElement.getLastChild());
 			
 			statusRegisterAttributeElement = doc.createElement("lengthByte");
 			statusRegisterElement.appendChild(statusRegisterAttributeElement);

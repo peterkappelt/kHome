@@ -3,6 +3,14 @@
  * @author Peter Kappelt
  */
 
+/**
+ * Version History:
+ * • V1.1 (20.4.2017)
+ *  - added this version history
+ * • V1.0 (19.4.2017)
+ *  - initial revision
+ */
+
 #ifndef KHOME_KHSERIAL_H_
 #define KHOME_KHSERIAL_H_
 

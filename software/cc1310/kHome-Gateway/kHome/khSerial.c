@@ -6,6 +6,14 @@
  * kHome Serial Media functions
  */
 
+/**
+ * Version History:
+ * • V1.1 (20.4.2017)
+ *  - added this version history
+ * • V1.0 (19.4.2017)
+ *  - initial revision
+ */
+
 #include "khSerial.h"
 #include "khTelegram.h"
 #include "khRF.h"

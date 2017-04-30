@@ -6,6 +6,16 @@
  * Processing of kHome-Telegrams
  */
 
+/**
+ * Version History:
+ * • V1.2 (29.4.2017)
+ *  - the default address is now 0xFF if the device is a gateway
+ * • V1.1 (20.4.2017)
+ *  - added this version history
+ * • V1.0 (19.4.2017)
+ *  - initial revision
+ */
+
 #include <stddef.h>
 #include <stdlib.h>
 
@@ -24,7 +34,11 @@ void khTelegramInit(void){
 
     if(ownAddressReturn != khRegRet_OK){
         ownAddress = (uint8_t*)malloc(sizeof(uint8_t));
+#ifdef KHOME_RF_SERIAL_GATEWAY
+        *ownAddress = 0xFF;
+#else
         *ownAddress = 0;
+#endif
     }else{
         ownAddress = ownAddressConfigRegister->dataLen1;
     }
