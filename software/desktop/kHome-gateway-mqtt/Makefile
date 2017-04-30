@@ -13,4 +13,4 @@ $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(LDFLAGS) $(OBJECTS) -Wl,-rpath=./kH-lib -Lsrc/paho-1.1.0/lib/ -lpaho-mqtt3c -o $@
 
 .c.o:
-	$(CC) $(CFLAGS) -ggdb -DbufferDatatype=khTelegram $< -o $@
+	$(CC) $(CFLAGS) -ggdb -std=c11 -DbufferDatatype=khTelegram $< -o $@
