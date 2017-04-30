@@ -36,14 +36,16 @@
 /* For usleep() */
 #include <unistd.h>
 #include <stddef.h>
+#include <math.h>
+
+/* Example/Board Header files */
+#include "Board.h"
 
 /* Driver Header files */
 #include <ti/drivers/I2C.h>
 #include <ti/drivers/NVS.h>
 #include <ti/devices/cc13x0/driverlib/flash.h>
-
-/* Example/Board Header files */
-#include "Board.h"
+#include <ti/devices/cc13x0/driverlib/aon_batmon.h>
 
 #include "kHome/khRegister.h"
 #include "kHome/khRF.h"
@@ -62,6 +64,8 @@ uint8_t i2cRxBuf[2];      // Receive buffer
 uint8_t i2cTxCmd;
 
 float rh = 0.0, temp = 0.0;
+uint32_t humidityLastTransmitted = 0, temperatureLastTransmitted = 0;
+uint16_t batteryLastTransmitted = 0;
 
 /*
  * NVS: write global configs
@@ -78,12 +82,14 @@ typedef struct{
     uint8_t magicKey;
     uint8_t deviceAddress;
     uint8_t autoTransmitInterval;
+    uint8_t autoTransmitBattery;
 }configNV_t;
 
 configNV_t configNV = {
    .magicKey = 0xAA,        //this is used to check, whether the NV-memory contains a valid struct with data
    .deviceAddress = 0,
    .autoTransmitInterval = 0,
+   .autoTransmitBattery = 0,
 };
 
 inline uint8_t configNVSize(){
@@ -93,6 +99,7 @@ inline uint8_t configNVSize(){
 
 uint8_t configDeviceAddressOld = 0;
 uint8_t configAutoTransmitIntervalOld = 0;
+uint8_t configAutoTransmitBatteryOld = 0;
 
 /**
  * @brief set the global temperature and RH value by reading it from the SI7020
@@ -116,9 +123,7 @@ uint8_t si7020updateTemperatureAndRh(void){
         return 0;
     }
 
-    //start to read the data from the device. We will get a NACK until the conversion is complete
-    //under test conditions, the conversion takes about 17ms, so we will wait for 20ms before trying to read.
-    //ToDo: wait a bit longer if conversion failed
+    //start to read the data from the device. The device uses clock stretching as long, as the conversion is in prograss
     i2cTrans.writeCount   = 0;
     i2cTrans.writeBuf     = &i2cTxCmd;
     i2cTrans.readCount    = 2;
@@ -177,7 +182,7 @@ void configNVRead(void){
     int status = NVS_read(nvsHandle, 0, &configNVRead, configNVSize());
     if (status != NVS_SOK) {
         //NVS_read failed
-        //ToDo: indicate error
+        programmingModeSetLed(1);
         while(1);
     }
 
@@ -185,9 +190,11 @@ void configNVRead(void){
         //the magic key is valid -> copy the information
         configNV.deviceAddress = configNVRead.deviceAddress;
         configNV.autoTransmitInterval = configNVRead.autoTransmitInterval;
+        configNV.autoTransmitBattery = configNVRead.autoTransmitBattery;
 
         configDeviceAddressOld = configNVRead.deviceAddress;
         configAutoTransmitIntervalOld = configNVRead.autoTransmitInterval;
+        configAutoTransmitBatteryOld = configNVRead.autoTransmitBattery;
     }
 }
 
@@ -195,12 +202,13 @@ void configNVWrite(void){
     int status = NVS_write(nvsHandle, 0, &configNV, configNVSize(), NVS_WRITE_ERASE | NVS_WRITE_VALIDATE);
     if (status != NVS_SOK) {
         //NVS_write failed
-        //ToDo: indicate error
+        programmingModeSetLed(1);
         while(1);
     }
 
     configDeviceAddressOld = configNV.deviceAddress;
     configAutoTransmitIntervalOld = configNV.autoTransmitInterval;
+    configAutoTransmitBatteryOld = configNV.autoTransmitBattery;
 }
 
 /*
@@ -221,18 +229,25 @@ void *mainThread(void *arg0)
     //we want to overwrite the data with the config from the non-volatile storage
     khReg* deviceAddressRegister;
     khReg* autoTransmitIntervalRegister;
+    khReg* autoTransmitBatteryRegister;
+
     if(khGetRegByAddress(khRegType_Config, 0x0, &deviceAddressRegister) != khRegRet_OK){
-        //ToDo: indicate the error
+        programmingModeSetLed(1);
         while(1);
     }
     if(khGetRegByAddress(khRegType_Config, 0x10, &autoTransmitIntervalRegister) != khRegRet_OK){
-        //ToDo: indicate the error
+        programmingModeSetLed(1);
+        while(1);
+    }
+    if(khGetRegByAddress(khRegType_Config, 0x11, &autoTransmitBatteryRegister) != khRegRet_OK){
+        programmingModeSetLed(1);
         while(1);
     }
 
     //overwrite the data pointers
     deviceAddressRegister->dataLen1 = &(configNV.deviceAddress);
     autoTransmitIntervalRegister->dataLen1 = &(configNV.autoTransmitInterval);
+    autoTransmitBatteryRegister->dataLen1 = &(configNV.autoTransmitBattery);
 
     /*
      * Init higher level kHome libraries
@@ -245,13 +260,22 @@ void *mainThread(void *arg0)
     //get the register pointers for the data registers, that contain humidity and temperature
     khReg* temperatureRegister;
     khReg* humidityRegister;
+    khReg* batteryVoltageRegister;
+    khReg* batteryPercentageRegister;
     if(khGetRegByAddress(khRegType_Data, 0x01, &temperatureRegister) != khRegRet_OK){
-        //ToDo: indicate the error
+        programmingModeSetLed(1);
         while(1);
     }
-
     if(khGetRegByAddress(khRegType_Data, 0x02, &humidityRegister) != khRegRet_OK){
-        //ToDo: indicate the error
+        programmingModeSetLed(1);
+        while(1);
+    }
+    if(khGetRegByAddress(khRegType_Data, 0x03, &batteryPercentageRegister) != khRegRet_OK){
+        programmingModeSetLed(1);
+        while(1);
+    }
+    if(khGetRegByAddress(khRegType_Data, 0x04, &batteryVoltageRegister) != khRegRet_OK){
+        programmingModeSetLed(1);
         while(1);
     }
 
@@ -270,7 +294,7 @@ void *mainThread(void *arg0)
     /* Confirming the sector size on this device is 4096 */
     if (FlashSectorSizeGet() != 4096) {
         //Flash sector size is not 4096
-        //ToDo: indicate the error
+        programmingModeSetLed(1);
         while(1);
     }
 
@@ -294,30 +318,70 @@ void *mainThread(void *arg0)
      */
     //khRFReceiveMode();
 
+    /**
+     * increment it every loop iteration
+     * once it is equal to config register 0x11 value, we read the battery voltage and transmit it
+     */
+    uint8_t batteryTransmitIterations = 0;
+
     while (1) {
+        if(*autoTransmitBatteryRegister->dataLen1 != 0){
+            batteryTransmitIterations++;
+            if(batteryTransmitIterations >= *autoTransmitBatteryRegister->dataLen1){
+                AONBatMonEnable();
+                while(!AONBatMonNewBatteryMeasureReady());
+
+                uint16_t batteryVoltageRaw = AONBatMonBatteryVoltageGet() & 0xFFFF;
+                float batteryVoltage = (float)batteryVoltageRaw * exp2f(-8);
+                *batteryVoltageRegister->dataLen2 = (uint16_t)(batteryVoltage * 100.0);
+
+                AONBatMonDisable();
+
+                /**
+                 * Calculate voltage in percentage,
+                 * where 3V and above are 100%
+                 * 2V and below are 0%
+                 * and proportional values inbetween
+                 */
+                if(*batteryVoltageRegister->dataLen2 >= 300){
+                    *batteryPercentageRegister->dataLen1 = 100;
+                }else if(*batteryVoltageRegister->dataLen2 <= 200){
+                    *batteryPercentageRegister->dataLen1 = 0;
+                }else{
+                    *batteryPercentageRegister->dataLen1 = *batteryVoltageRegister->dataLen2 - 200;
+                }
+
+                if(batteryLastTransmitted != *batteryPercentageRegister->dataLen2){
+                    khRFBroadcastDataRegister(0x03);
+                    usleep(10000);
+                    batteryLastTransmitted = *batteryPercentageRegister->dataLen2;
+                }
+            }
+        }
+
+
         if(si7020updateTemperatureAndRh()){
-            //todo: only send, if it changed
             *temperatureRegister->dataLen4 = (int32_t)(temp * 10);
             *humidityRegister->dataLen4 = (uint32_t)(rh * 10);
         }
         if(configNV.autoTransmitInterval != 0){
-            khRFBroadcastDataRegister(0x01);
+            if(temperatureLastTransmitted != *temperatureRegister->dataLen4){
+                temperatureLastTransmitted = *temperatureRegister->dataLen4;
+                khRFBroadcastDataRegister(0x01);
+            }
             usleep(10000);
-            khRFBroadcastDataRegister(0x02);
+            if(humidityLastTransmitted != *humidityRegister->dataLen4){
+                humidityLastTransmitted = *humidityRegister->dataLen4;
+                khRFBroadcastDataRegister(0x02);
+            }
             sleep(configNV.autoTransmitInterval);
         }else{
             sleep(10);
         }
 
         //if the config was changed, write it to the non-volatile memory
-        if((configDeviceAddressOld != configNV.deviceAddress) || (configAutoTransmitIntervalOld != configNV.autoTransmitInterval)){
+        if((configDeviceAddressOld != configNV.deviceAddress) || (configAutoTransmitIntervalOld != configNV.autoTransmitInterval) || (configAutoTransmitBatteryOld) != configNV.autoTransmitBattery){
             configNVWrite();
         }
-
-        /*if(GPIO_read(Board_GPIO_PRGBTN)){
-            GPIO_write(Board_GPIO_PRGLED, 0);
-        }else{
-            GPIO_write(Board_GPIO_PRGLED, 1);
-        }*/
     }
 }

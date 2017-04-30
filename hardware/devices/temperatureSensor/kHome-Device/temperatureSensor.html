@@ -89,6 +89,20 @@ Version History:
 					<td>0</td>
 					<td>true</td>
 					<td>This register contains the humidity value in tenth %RH<br/>You've to divide this value with ten to get the real value<br/>This value is represented as an 32 bit unsigned integer</td>
+				</tr><tr>
+					<td>0x4</td>
+					<td>batteryVoltage</td>
+					<td>2</td>
+					<td>0</td>
+					<td>true</td>
+					<td>This register contains the voltage of the battery<br/>You've to divide it with 100 to get the real value in volts</td>
+				</tr><tr>
+					<td>0x3</td>
+					<td>batteryPercentage</td>
+					<td>1</td>
+					<td>0</td>
+					<td>true</td>
+					<td>Percentage of battery remaining</td>
 				</tr>
 			</tbody>
 		</table>
@@ -118,6 +132,12 @@ Version History:
 					<td>0</td>
 					<td>false</td>
 					<td>The value of this register declares, how often the data registers 0x01 and 0x02 (temperature and humidity) get transmitted<br/>A value of 0 means, that they will never be broadcasted, only read manually</td>
+				</tr><tr>
+					<td>0x11</td>
+					<td>autoTransmitBattery</td>
+					<td>0</td>
+					<td>false</td>
+					<td>The battery voltage/ percentage will be read every autoTransmitInterval * autoTransmitBattery seconds<br/>If it changed, since last time, it'll be transmitted</td>
 				</tr>
 			</tbody>
 		</table>

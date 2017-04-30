@@ -5,7 +5,7 @@
  * Version of the register template: V1.0
  * Date of the register template: 25.3.2017
  *
- * Date of the register file generation: 2017-04-20 09:32:19.245
+ * Date of the register file generation: 2017-04-30 13:41:09.423
  *
  * This file was automatically generated out of the Device-File temperatureSensor.khd
  *
@@ -64,6 +64,30 @@ This register contains the humidity value in tenth %RH<br/>You've to divide this
 khReg khRegDatahumidity_Reg;
 khReg_LEN4_DATATYPE khRegDatahumidity_Data;
 
+/*
+ * Data Register "batteryVoltage"
+ * Address 0x4
+ * Length: 2 Byte(s)
+ * Initial Value: 0
+ * Read Only: true
+ * Description:
+This register contains the voltage of the battery<br/>You've to divide it with 100 to get the real value in volts
+ */
+khReg khRegDatabatteryVoltage_Reg;
+khReg_LEN2_DATATYPE khRegDatabatteryVoltage_Data;
+
+/*
+ * Data Register "batteryPercentage"
+ * Address 0x3
+ * Length: 1 Byte(s)
+ * Initial Value: 0
+ * Read Only: true
+ * Description:
+Percentage of battery remaining
+ */
+khReg khRegDatabatteryPercentage_Reg;
+khReg_LEN1_DATATYPE khRegDatabatteryPercentage_Data;
+
 
 
 
@@ -97,6 +121,18 @@ The value of this register declares, how often the data registers 0x01 and 0x02 
  */
 khReg khRegConfautoTransmitInterval_Reg;
 uint8_t khRegConfautoTransmitInterval_Data;
+
+
+/*
+ * Config Register "autoTransmitBattery"
+ * Address 0x11
+ * Initial Value: 0
+ * Read Only: false
+ * Description:
+The battery voltage/ percentage will be read every autoTransmitInterval * autoTransmitBattery seconds<br/>If it changed, since last time, it'll be transmitted
+ */
+khReg khRegConfautoTransmitBattery_Reg;
+uint8_t khRegConfautoTransmitBattery_Data;
 
 
 
@@ -160,6 +196,22 @@ void khRegisterInit(void){
     khRegDatahumidity_Reg.dataLen4 = &khRegDatahumidity_Data;
 
 	
+    khRegDatabatteryVoltage_Reg.regAddress = 0x4;
+    khRegDatabatteryVoltage_Reg.regType = khRegType_Data;
+    khRegDatabatteryVoltage_Reg.regReadOnly = true;
+    khRegDatabatteryVoltage_Reg.regLength = 2;
+    khRegDatabatteryVoltage_Data = 0;
+    khRegDatabatteryVoltage_Reg.dataLen2 = &khRegDatabatteryVoltage_Data;
+
+	
+    khRegDatabatteryPercentage_Reg.regAddress = 0x3;
+    khRegDatabatteryPercentage_Reg.regType = khRegType_Data;
+    khRegDatabatteryPercentage_Reg.regReadOnly = true;
+    khRegDatabatteryPercentage_Reg.regLength = 1;
+    khRegDatabatteryPercentage_Data = 0;
+    khRegDatabatteryPercentage_Reg.dataLen1 = &khRegDatabatteryPercentage_Data;
+
+	
 	
 	
 	
@@ -182,6 +234,14 @@ void khRegisterInit(void){
     khRegConfautoTransmitInterval_Reg.regLength = 1;
     khRegConfautoTransmitInterval_Data = 0;
     khRegConfautoTransmitInterval_Reg.dataLen1 = &khRegConfautoTransmitInterval_Data;
+
+	
+    khRegConfautoTransmitBattery_Reg.regAddress = 0x11;
+    khRegConfautoTransmitBattery_Reg.regType = khRegType_Config;
+    khRegConfautoTransmitBattery_Reg.regReadOnly = false;
+    khRegConfautoTransmitBattery_Reg.regLength = 1;
+    khRegConfautoTransmitBattery_Data = 0;
+    khRegConfautoTransmitBattery_Reg.dataLen1 = &khRegConfautoTransmitBattery_Data;
 
 	
 		
@@ -230,6 +290,12 @@ khRegRet khGetRegByAddress(khRegType registerType, uint8_t address, khReg** regi
         }else if(address == 0x2){
             *registerOut = &khRegDatahumidity_Reg;
             return khRegRet_OK;
+        }else if(address == 0x4){
+            *registerOut = &khRegDatabatteryVoltage_Reg;
+            return khRegRet_OK;
+        }else if(address == 0x3){
+            *registerOut = &khRegDatabatteryPercentage_Reg;
+            return khRegRet_OK;
         }else{
             return khRegRet_RegUnknown;
         }
@@ -241,6 +307,9 @@ khRegRet khGetRegByAddress(khRegType registerType, uint8_t address, khReg** regi
             return khRegRet_OK;
         }else if(address == 0x10){
             *registerOut = &khRegConfautoTransmitInterval_Reg;
+            return khRegRet_OK;
+        }else if(address == 0x11){
+            *registerOut = &khRegConfautoTransmitBattery_Reg;
             return khRegRet_OK;
         }else{
             return khRegRet_RegUnknown;

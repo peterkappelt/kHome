@@ -12,6 +12,10 @@
 
 uint8_t programmingModeEnabled = 0;
 
+void programmingModeSetLed(uint8_t state){
+    GPIO_write(Board_GPIO_PRGLED, state ? 1:0);
+}
+
 void programmingModeButtonPressed(uint_least8_t index){
     programmingModeEnabled = !programmingModeEnabled;
 

@@ -8,6 +8,7 @@
 #define PROGRAMMINGMODE_PROGRAMMINGMODE_H_
 
 
+void programmingModeSetLed(uint8_t state);
 void programmingModeInit(void);
 
 
